@@ -109,3 +109,59 @@ Troubleshooting
 - Zkontrolujte, že `directory` v workflow odpovídá umístění (zde `HelloComp_PREZENTACE`).
 
 Hotovo — po přidání secrets spusťte workflow ručně (`Actions → Deploy to Cloudflare Pages → Run workflow`) a po úspěšném buildu vám Cloudflare předá preview URL.
+
+## Připojení repozitáře k Cloudflare Pages (UI) — krok za krokem
+
+1. Přihlaste se do Cloudflare: https://dash.cloudflare.com/ (použijte účet, který má přístup k Pages).
+2. V levém menu vyberte **Pages** → **Create a project**.
+3. Klikněte na **Connect to Git** → vyberte GitHub a autorizujte přístup (pokud Cloudflare dosud nemá oprávnění k vašemu GitHub účtu).
+4. Vyberte repozitář `tomasberka/hellocomp-prezentace` a klikněte **Begin setup**.
+5. Build settings:
+   - Framework: **None** (statická HTML prezentace)
+   - Build command: (ponechat prázdné)
+   - Output directory: `HelloComp_PREZENTACE`
+   - Production branch: `main`
+6. Dokončete vytvoření projektu. Cloudflare vytvoří adresu `https://<project>.pages.dev` — uložte si ji pro preview.
+
+Poznámka: Pokud chcete, aby se nasazení spouštělo přes náš GitHub Actions workflow (místo integrovaného konektoru), použijte níže uvedené secrets a workflow.
+
+## Vytvoření Cloudflare API tokenu (pokud používáte workflow)
+
+1. V Cloudflare dashboardu klikněte na profil (pravý horní roh) → **My Profile** → **API Tokens** → **Create Token**.
+2. Použijte šablonu **Edit Cloudflare Pages** (nebo vytvořte Custom token) a udělte mu oprávnění pro Pages (Edit/Publish) a případně Account:Read.
+3. Po vytvoření tokenu zkopírujte jeho hodnotu (jednorázově — už ji neukáže znovu).
+4. Najděte `Account ID`: Cloudflare → Account → Overview → Account ID.
+
+## Přidání secrets do GitHubu (UI nebo GH CLI)
+
+GitHub UI:
+- Repo → Settings → Secrets & variables → Actions → New repository secret → přidejte tyto tři secrety:
+  - `CLOUDFLARE_API_TOKEN` → (váš token)
+  - `CLOUDFLARE_ACCOUNT_ID` → (Account ID)
+  - `CLOUDFLARE_PAGES_PROJECT_NAME` → `hellocomp-prezentace`
+
+GH CLI (pokud máte nainstalovaný `gh` a jste přihlášeni):
+```bash
+# nastavte proměnné lokálně a spusťte tyto příkazy
+export CF_TOKEN="<váš_cloudflare_token>"
+export CF_ACCOUNT_ID="<váš_account_id>"
+gh secret set CLOUDFLARE_API_TOKEN --body "$CF_TOKEN" -R tomasberka/hellocomp-prezentace
+gh secret set CLOUDFLARE_ACCOUNT_ID --body "$CF_ACCOUNT_ID" -R tomasberka/hellocomp-prezentace
+gh secret set CLOUDFLARE_PAGES_PROJECT_NAME --body "hellocomp-prezentace" -R tomasberka/hellocomp-prezentace
+```
+
+## Spuštění workflow a kontrola preview
+
+- Po přidání secretů otevřete GitHub → Actions → `Deploy to Cloudflare Pages` workflow a klikněte **Run workflow** (vyberte `main`).
+- Po úspěšném běhu otevřete logy a najděte URL `https://<project>.pages.dev` nebo zkontrolujte Cloudflare Pages dashboard.
+
+## Pokud chcete, abych to udělal za Vás
+
+- Můžu provést automatické připojení a dokončit nastavení Pages, ale potřebuji jedno z následujícího:
+  1. Dočasný **Cloudflare API token** (doporučeno: token s právem Pages Edit) + vaše **Account ID** — já vytvořím/konfiguruji Pages projekt přes API nebo `cloudflare/pages-action` a přidám potřebné GitHub secrets. Nebo
+  2. Udělení přístupu přes Cloudflare UI (poskytnutí přihlašovacích údajů) — méně doporučené.
+
+- Bezpečnostní doporučení: místo zasílání tokenu přes chat doporučuji, abyste token vytvořil(a) a vložil(a) ho přímo do GitHub repo secrets podle instrukcí výše; já pak mohu workflow spustit a sledovat nasazení.
+
+---
+
