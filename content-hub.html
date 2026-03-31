@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>HelloComp — Content Hub (Unified)</title>
+  <meta name="description" content="Centralizované Content Hub — všechny prezentace a materiály na jednom místě.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    /* small overrides for hub layout */
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    header .brand{display:flex;align-items:center;gap:12px}
+    header .brand .logo{width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;background:linear-gradient(135deg,#0b74de,#004e9f);box-shadow:0 8px 24px rgba(11,116,222,0.12)}
+    .tabs{display:flex;gap:8px;margin-bottom:14px}
+    .tab{padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.03);color:var(--muted);cursor:pointer;font-weight:700}
+    .tab.active{background:linear-gradient(90deg,#0b74de,#004e9f);color:white}
+    .panel{display:none}
+    .panel.active{display:block}
+    .hub-note{color:var(--muted);margin-bottom:10px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">HC</div>
+        <div class="brand-text"><h1>HelloComp — Content Hub</h1><div class="meta">Všechny prezentace a doplňkové materiály na jednom místě</div></div>
+      </div>
+      <div class="actions">
+        <a id="downloadZip" class="btn" href="#">Stáhnout ZIP</a>
+        <a id="openGit" class="btn ghost" href="#">Otevřít GitHub</a>
+      </div>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-target="#prezentace">Prezentace</button>
+      <button class="tab" data-target="#other">Ostatní</button>
+    </div>
+
+    <div id="prezentace" class="panel active">
+      <div class="hub-note">Vyberte kartu pro otevření konkrétní prezentace. Můžete hledat pomocí pole níže.</div>
+      <div class="search">
+        <input id="filter" placeholder="Hledat prezentaci (např. Instagram, SEO)...">
+      </div>
+
+      <div class="grid" id="list">
+        <!-- presentation items (sourced from HelloComp_PREZENTACE/index.html) -->
+        <a class="card" href="HelloComp_Carousel_Export.html" data-title="Carousel Export" data-desc="Exporty karuselů — grafiky, rozložení a popisky.">
+          <div class="thumb" aria-hidden="true"></div>
+          <div class="card-body"><h3>Carousel Export</h3><p class="desc">Exporty karuselů — grafiky, rozložení a popisky.</p></div>
+          <div class="card-actions">Otevřít</div>
+        </a>
+        <a class="card" href="HelloComp_Instagram_Carousels.html" data-title="Instagram Carousels" data-desc="Hotové karusely pro Instagram — verze a rozměry.">
+          <div class="thumb" aria-hidden="true"></div>
+          <div class="card-body"><h3>Instagram Carousels</h3><p class="desc">Hotové karusely pro Instagram — verze a rozměry.</p></div>
+          <div class="card-actions">Otevřít</div>
+        </a>
+        <a class="card" href="HelloComp_SEO_Video_Scripts.html" data-title="SEO Video Scripts" data-desc="Skripty videí optimalizované pro SEO — texty a hledané výrazy.">
+          <div class="thumb" aria-hidden="true"></div>
+          <div class="card-body"><h3>SEO Video Scripts</h3><p class="desc">Skripty videí optimalizované pro SEO — texty a hledané výrazy.</p></div>
+          <div class="card-actions">Otevřít</div>
+        </a>
+        <a class="card" href="HelloComp_SEO_Video_Scripts_DOPLNENI.html" data-title="SEO Video Scripts — doplnění" data-desc="Doplňující materiály a rozšířené poznámky k videím.">
+          <div class="thumb" aria-hidden="true"></div>
+          <div class="card-body"><h3>SEO Video Scripts — doplnění</h3><p class="desc">Doplňující materiály a rozšířené poznámky k videím.</p></div>
+          <div class="card-actions">Otevřít</div>
+        </a>
+        <a class="card" href="HelloComp_Vsechny_Scenare.html" data-title="Všechny scénáře" data-desc="Kompletní seznam scénářů a náhledy pro schválení.">
+          <div class="thumb" aria-hidden="true"></div>
+          <div class="card-body"><h3>Všechny scénáře</h3><p class="desc">Kompletní seznam scénářů a náhledy pro schválení.</p></div>
+          <div class="card-actions">Otevřít</div>
+        </a>
+      </div>
+    </div>
+
+    <div id="other" class="panel">
+      <div class="bsec">
+        <h2>Ostatní zdroje</h2>
+        <p class="sub">Sem můžete přidat reporty, auditní výstupy a další podpůrné materiály.</p>
+        <ul>
+          <li><a class="slink" href="../CODE_MAHONY/PROJECTS/Hellocomp SEO + COPY/HelloComp_Content_Hub.html">Původní Content Hub (v projektu)</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <footer class="footer">Pokud chcete veřejný odkaz (GitHub Pages), odpovězte "Ano"; jinak doporučuji Netlify Drop pro rychlé publikování.</footer>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // tabs
+      document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        t.classList.add('active');
+        document.querySelector(t.dataset.target).classList.add('active');
+      }));
+
+      // thumbnails + color
+      const cards = Array.from(document.querySelectorAll('.card'));
+      cards.forEach(card => {
+        const title = card.dataset.title || card.querySelector('h3').textContent;
+        const initials = title.split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+        let hash = 0; for (let i=0;i<title.length;i++) hash = title.charCodeAt(i) + ((hash<<5)-hash);
+        const h = Math.abs(hash) % 360;
+        const thumb = card.querySelector('.thumb');
+        thumb.style.background = `linear-gradient(135deg, hsl(${h} 70% 50%), hsl(${(h+40)%360} 70% 40%))`;
+        thumb.textContent = initials;
+      });
+
+      const filter = document.getElementById('filter');
+      if (filter) filter.addEventListener('input', e => {
+        const q = e.target.value.trim().toLowerCase();
+        cards.forEach(card => {
+          const title = (card.dataset.title || '').toLowerCase();
+          const desc = (card.dataset.desc || '').toLowerCase();
+          const show = !q || title.includes(q) || desc.includes(q);
+          card.style.display = show ? '' : 'none';
+        });
+      });
+
+      const download = document.getElementById('downloadZip');
+      if (download) download.addEventListener('click', e => {
+        e.preventDefault();
+        window.location.href = 'HelloComp_PREZENTACE_deploy.zip';
+      });
+
+      const openGit = document.getElementById('openGit');
+      if (openGit) openGit.addEventListener('click', e => { e.preventDefault(); window.open('https://github.com/tomasberka/hellocomp-prezentace','_blank'); });
+    });
+  </script>
+</body>
+</html>
