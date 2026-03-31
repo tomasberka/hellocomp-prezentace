@@ -1,6 +1,6 @@
 // Lightweight in-site password gate.
 (function(){
-  const SECRET = 'prezentace2026'; // change this string if you want a different password
+  const SECRET = 'prezentace'; // change this string if you want a different password
   const STORAGE_KEY = 'hc_presentations_auth_v1';
 
   function createOverlay(){
