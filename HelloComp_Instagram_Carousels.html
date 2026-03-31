@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HelloComp — Instagram Carousels</title>
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #161B22; --border: #30363D;
+    --text: #E6EDF3; --muted: #8B949E; --blue: #2563EB; --lightblue: #58A6FF;
+    --green: #3FB950; --amber: #F0A500;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+  header { background: #111827; border-bottom: 1px solid var(--border); padding: 18px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header h1 { font-size: 1.25rem; font-weight: 700; }
+  header span { font-size: 0.82rem; color: var(--muted); }
+  .info-bar { background: rgba(37,99,235,.12); border-bottom: 1px solid rgba(37,99,235,.25); padding: 10px 24px; font-size: 0.82rem; color: #93C5FD; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  .carousel-section { margin-bottom: 48px; }
+  .carousel-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .carousel-num { background: var(--blue); color: #fff; font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .carousel-topic { font-size: 1.05rem; font-weight: 700; }
+  .carousel-tag { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); }
+  .slides { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media(max-width:700px) { .slides { grid-template-columns: 1fr; } }
+
+  /* Template mockup */
+  .slide-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .slide-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .slide-label span { color: var(--lightblue); }
+  .mockup {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/5;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #050c1a;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  }
+  /* Circuit board pattern background */
+  .mockup-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(37,99,235,.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 30%, rgba(6,182,212,.2) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(37,99,235,.2) 0%, transparent 50%),
+      linear-gradient(135deg, #050c1a 0%, #0a1628 100%);
+  }
+  /* Circuit line decorations */
+  .mockup-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(37,99,235,.08) 0px, transparent 1px, transparent 30px),
+      repeating-linear-gradient(90deg, rgba(37,99,235,.08) 0px, transparent 1px, transparent 30px);
+  }
+  .mockup-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(6,182,212,.15) 0%, transparent 25%),
+      radial-gradient(circle at 85% 75%, rgba(37,99,235,.2) 0%, transparent 25%),
+      radial-gradient(circle at 70% 15%, rgba(6,182,212,.1) 0%, transparent 20%);
+  }
+  .card-inner {
+    position: absolute;
+    left: 8%; right: 8%; top: 5%; bottom: 5%;
+    background: rgba(245,248,255,0.97);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 16px 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.3);
+  }
+  .card-content { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+  .card-headline { font-size: 1.05rem; font-weight: 800; color: #111827; line-height: 1.3; }
+  .card-body-text { font-size: 0.72rem; color: #374151; line-height: 1.6; }
+  .card-bullets { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .card-bullets li { font-size: 0.7rem; color: #374151; line-height: 1.5; }
+  .swipe-hint { font-size: 0.68rem; color: #2563EB; font-weight: 700; margin-top: 6px; }
+  .card-logo { margin-top: auto; padding-top: 10px; border-top: 1px solid #e5e7eb; text-align: center; }
+  .logo-text { font-size: 0.9rem; font-weight: 700; color: #111827; letter-spacing: -0.02em; }
+  .logo-smile { width: 28px; height: 6px; margin: 2px auto 0; background: none; border-bottom: 2px solid #2563EB; border-radius: 0 0 50% 50%; }
+
+  /* Copy panel */
+  .copy-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .copy-panel pre { font-family: 'Segoe UI', sans-serif; font-size: 0.8rem; color: #C9D1D9; white-space: pre-wrap; line-height: 1.6; }
+  .copy-btn { margin-top: 8px; background: #1C2128; border: 1px solid var(--border); color: var(--muted); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; width: 100%; transition: all .15s; }
+  .copy-btn:hover { border-color: var(--green); color: var(--green); }
+  .copy-btn.ok { border-color: var(--green); color: var(--green); background: rgba(63,185,80,.08); }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📱 HelloComp — Instagram Carousels</h1>
+  <span>10 karuselů • 3 slidy každý • připraveno pro šablonu</span>
+</header>
+<div class="info-bar">
+  💡 Každý karusel má 3 slidy: <strong>Slide 1 = Hook</strong> (zaujme) · <strong>Slide 2 = Hodnota</strong> (hlavní obsah) · <strong>Slide 3 = CTA</strong> (akce + engagement)
+</div>
+<div class="page" id="page"></div>
+
+<script>
+const carousels = [
+{
+  topic: "Herní PC do 20 000 Kč — co za to reálně dostanete?",
+  tag: "Budget PC",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "Za 20 000 Kč\nherní PC?\nOpravdu?",
+      body: "Spousta lidí si myslí, že za 20 tisíc nic pořádného nekoupí.\n\nMy vám ukážeme, že se mýlí.",
+      bullets: null,
+      swipe: "Přejeďte a zjistěte co dostanete →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "Co dostanete\nza 20 000 Kč",
+      body: null,
+      bullets: [
+        "✅  Ryzen 5 7600 + RTX 4060",
+        "✅  16 GB DDR5 RAM",
+        "✅  512 GB NVMe SSD",
+        "✅  Full HD na vysokých nastaveních",
+        "✅  Otestováno + plná záruka",
+        "",
+        "Za 3 roky byl stejný výkon za dvojnásobek."
+      ],
+      swipe: "A teď nejdůležitější tip →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "Jeden tip,\nkterý ušetří\npeníze",
+      body: "Nekupujte od neznámých prodejců. Levná sestava bez záruky = drahá oprava za rok.\n\nV HelloComp testujeme každý PC před odesláním.",
+      bullets: null,
+      swipe: "🔗 Odkaz v biu · napište nám budget 👇"
+    }
+  ]
+},
+{
+  topic: "Jak poznat skutečně nejlepší herní PC",
+  tag: "Výběr PC",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "\"Nejlepší herní PC\"\n\nToto slovo používá každý prodejce.",
+      body: "Ale víte, co to skutečně znamená?\n\nDáme vám 3 konkrétní kritéria.",
+      bullets: null,
+      swipe: "Přejeďte →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "3 kritéria\nskutečně\ndobrého PC",
+      body: null,
+      bullets: [
+        "⚡  Výkon ve VAŠICH hrách",
+        "    — ne v marketingovém benchmarku",
+        "🔋  Životnost 5–7 let bez upgradu",
+        "🛡️  Záruka a servis po prodeji",
+        "",
+        "Drahý ≠ nejlepší.",
+        "Správný = nejlepší."
+      ],
+      swipe: "Co z toho plyne pro vás? →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "Bezplatné\nporadenství\nzdarma",
+      body: "Napište nám:\n🎮 Jaké hry hrajete\n💰 Váš budget\n\nDostanete přesné doporučení.\nBez keců, bez tlaku.",
+      bullets: null,
+      swipe: "🔗 DM nebo odkaz v biu 👇"
+    }
+  ]
+},
+{
+  topic: "Bottleneck — váš PC brzdí sám sebe",
+  tag: "Hardware",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "Váš PC brzdí\nsám sebe.\n\nA vy o tom nevíte.",
+      body: "Říká se tomu bottleneck.\n\nDneska vám vysvětlíme, co to je a jak to zkontrolovat.",
+      bullets: null,
+      swipe: "Přejeďte →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "Co je\nbottleneck?",
+      body: "CPU nestíhá GPU → GPU čeká → framerate padá",
+      bullets: [
+        "",
+        "❌  i5-8400 + RTX 4070",
+        "   = výkon RTX 4060",
+        "",
+        "✅  Ryzen 5 7600 + RTX 4070",
+        "   = plný výkon",
+        "",
+        "Špatná kombinace = vyhazování peněz."
+      ],
+      swipe: "Jak to zkontrolovat? →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "Zkontrolujte\nto za\n5 minut",
+      body: "1.  Stáhněte MSI Afterburner\n2.  Hrajte 20 minut s overlay\n3.  GPU pod 90 %? → Problém.\n\nNapište nám vaši kombinaci CPU+GPU 👇",
+      bullets: null,
+      swipe: null
+    }
+  ]
+},
+{
+  topic: "XMP profil — RAM zdarma zrychlí váš PC",
+  tag: "Tip & Trik",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "Váš RAM běží\nna polovičním\nvýkonu.",
+      body: "Většina hráčů o tomto problému ani neví.\n\nA přitom řešení zabere 2 minuty.",
+      bullets: null,
+      swipe: "Přejeďte →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "Co je\nXMP / EXPO\nprofil?",
+      body: null,
+      bullets: [
+        "Koupili jste RAM 3600 MHz?",
+        "Bez XMP běží na 2133 MHz.",
+        "",
+        "Jak zapnout:",
+        "1.  Restart → Del nebo F2 → BIOS",
+        "2.  Najít Memory / OC profil",
+        "3.  Zapnout XMP nebo EXPO",
+        "4.  Uložit a restartovat"
+      ],
+      swipe: "A výsledek? →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "Hry rychlejší.\nPC svižnější.\n\nZdarma.",
+      body: "Toto je nejlevnější upgrade, který existuje.\n\nVyzkoušeli jste?\nNapište do komentářů ✅ nebo ❌",
+      bullets: null,
+      swipe: null
+    }
+  ]
+},
+{
+  topic: "Čištění PC — prach zabíjí výkon",
+  tag: "Údržba",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "Váš PC je\npomalejší,\nnež byl.\n\nVíme proč.",
+      body: "Odpověď vás překvapí.\nNení to software.",
+      bullets: null,
+      swipe: "Přejeďte →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "Prach =\npomalejší PC",
+      body: null,
+      bullets: [
+        "GPU přehřátá → thermal throttling",
+        "→ až −20 % výkon",
+        "",
+        "CPU přehřátý → snižuje takty",
+        "→ pády her, lags",
+        "",
+        "Kdy čistit:",
+        "🏠  Normální prostředí: každých 6 měs.",
+        "🐾  Zvíře doma: každé 3 měsíce",
+        "🌫️  Prašné prostředí: každé 2 měsíce"
+      ],
+      swipe: "Jak na to za 15 minut? →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "15 minut,\nkteré zachrání\nváš PC",
+      body: "1.  Odpojit od proudu\n2.  Stlačený vzduch na ventilátory\n3.  Vyčistit filtry (voda)\n4.  HWiNFO → zkontrolovat teploty\n\nKdy jste čistili naposledy? 👇",
+      bullets: null,
+      swipe: null
+    }
+  ]
+},
+{
+  topic: "HDMI vs DisplayPort — hrajete na 60Hz bez vědomí?",
+  tag: "Tip & Trik",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "Máte 144Hz\nmonitor a hrajete\nna 60Hz.",
+      body: "Ani o tom nevíte.\n\nTohle je překvapivě velmi častá chyba hráčů.",
+      bullets: null,
+      swipe: "Přejeďte →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "HDMI vs\nDisplayPort\n— rozdíl",
+      body: null,
+      bullets: [
+        "❌  HDMI 1.4 = max 60Hz v 1080p",
+        "⚠️  HDMI 2.0 = max 144Hz v 1080p",
+        "✅  DisplayPort 1.4 = 240Hz / 1440p",
+        "",
+        "Pro hráče je DisplayPort vždy lepší.",
+        "",
+        "⚠️  Monitor musí být zapojen do GPU,",
+        "    ne do základní desky!"
+      ],
+      swipe: "Jak to zkontrolovat? →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "Zkontrolujte\nto teď —\nza 30 sekund.",
+      body: "Windows → Nastavení → Zobrazení\n→ Rozšířená nastavení zobrazení\n→ Obnovovací frekvence\n\nVidíte 60Hz při 144Hz monitoru?\nStačí vyměnit kabel.",
+      bullets: null,
+      swipe: "Napište jaký Hz máte 👇"
+    }
+  ]
+},
+{
+  topic: "Repasované herní PC — zlatý důl pro chytré hráče",
+  tag: "Repas",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "Výkonný herní\nPC za méně\npeněz. Jak?",
+      body: "Repasované herní PC.\n\nA my vám ukážeme, proč to dává smysl.",
+      bullets: null,
+      swipe: "Přejeďte →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "Co je\nrepasované\nPC?",
+      body: null,
+      bullets: [
+        "✅  Zánovní hardware = nový výkon",
+        "✅  Otestováno + plná záruka",
+        "✅  20–40 % levnější než nové",
+        "",
+        "❌  Žádné levné brakové části",
+        "❌  Žádný bazar bez záruky",
+        "",
+        "Za cenu nového PC do 20 tis.",
+        "dostanete repasovaný za 25 tis."
+      ],
+      swipe: "Komu to dává smysl? →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "Pro koho\nje to\nideální?",
+      body: "👨‍🎓  Studenti s omezeným budgetem\n🎮  Hráči, kteří chtějí více výkonu\n💼  Firmy hledající úsporné řešení\n\nAktuální nabídka 🔗 v biu",
+      bullets: null,
+      swipe: null
+    }
+  ]
+},
+{
+  topic: "RTX 50 série — vyplatí se upgradovat?",
+  tag: "Hardware",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "Nvidia RTX 50\nserie je tady.\n\nAle je to\npro vás?",
+      body: "Upřímná odpověď bez marketingu.\n\nPřejeďte →",
+      bullets: null,
+      swipe: "Přejeďte →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "Co přináší\nRTX 50 série?",
+      body: null,
+      bullets: [
+        "🤖  DLSS 4 — AI generuje 3 snímky",
+        "⚡  Neural Rendering — AI detaily",
+        "💾  RTX 5090: 32 GB GDDR7, 600W",
+        "",
+        "Pro hráče zajímavé:",
+        "RTX 5070 Ti / 5070",
+        "= výkon RTX 4080 za nižší cenu"
+      ],
+      swipe: "Takže... upgradovat? →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "Upgradu­jte\npouze\npokud...",
+      body: "❌  RTX 4070 a výš?\n    Nepotřebujete. Výkon nestojí za to.\n\n✅  RTX 3070 a starší?\n    RTX 5070 dává smysl.\n\nNapište svou aktuální kartu 👇",
+      bullets: null,
+      swipe: null
+    }
+  ]
+},
+{
+  topic: "Vodní vs vzduchové chlazení — co je skutečně lepší?",
+  tag: "Hardware",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "Vodní chlazení\n= lepší výkon?\n\nPravda vás\npřekvapí.",
+      body: "Spoiler: záleží na tom, co kupujete.",
+      bullets: null,
+      swipe: "Přejeďte →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "Vzduch vs\nVoda —\nsrovnání",
+      body: null,
+      bullets: [
+        "🌬️  Tower cooler:",
+        "✅  Spolehlivější, životnost 10+ let",
+        "✅  NH-D15 = stejný výkon jako AIO",
+        "",
+        "💧  AIO vodní chlazení:",
+        "✅  O 5–10 °C nižší teploty (360mm)",
+        "✅  Méně místa nad CPU",
+        "❌  Pumpa selže za 5–7 let"
+      ],
+      swipe: "Naše doporučení →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "Naše\ndoporučení\npro vás:",
+      body: "Budget / střední sestava\n→ Tower cooler\n\nHigh-end + OC + design\n→ AIO 360mm\n\nNejvětší chyba? Levné AIO za 800 Kč.\n\nCo používáte vy? 👇",
+      bullets: null,
+      swipe: null
+    }
+  ]
+},
+{
+  topic: "Jak vybrat herní PC — 3 otázky, které vše rozhodnou",
+  tag: "Výběr PC",
+  slides: [
+    {
+      label: "Slide 1 — HOOK",
+      headline: "Nevíte,\njak vybrat\nherní PC?",
+      body: "Stačí odpovědět na 3 otázky.\n\nDáme vám je.",
+      bullets: null,
+      swipe: "Přejeďte →"
+    },
+    {
+      label: "Slide 2 — HODNOTA",
+      headline: "3 otázky\npro správný\nvýběr",
+      body: null,
+      bullets: [
+        "❓ Co budete hrát?",
+        "  Esport → CPU důležitější",
+        "  AAA hry → GPU důležitější",
+        "",
+        "❓ V jakém rozlišení?",
+        "  1080p / 1440p / 4K",
+        "",
+        "❓ Jaký máte budget?",
+        "  20K → solid 1080p",
+        "  30K → pohodlné 1440p",
+        "  40K+ → 4K / high FPS"
+      ],
+      swipe: "A co teď? →"
+    },
+    {
+      label: "Slide 3 — CTA",
+      headline: "Poradíme\nvám zdarma\na konkrétně.",
+      body: "Napište nám:\n🎮  Jaké hry hrajete\n💰  Váš budget\n📺  Jaký monitor máte\n\nDostanete přesné doporučení do 24 hodin.",
+      bullets: null,
+      swipe: "🔗 Odkaz v biu nebo DM 👇"
+    }
+  ]
+}
+];
+
+function buildCard(slide, idx) {
+  let contentHtml = '';
+  const headline = slide.headline.replace(/\n/g, '<br>');
+  contentHtml += `<div class="card-headline">${headline}</div>`;
+  if (slide.body) {
+    contentHtml += `<div class="card-body-text" style="margin-top:6px">${slide.body.replace(/\n/g, '<br>')}</div>`;
+  }
+  if (slide.bullets) {
+    contentHtml += `<ul class="card-bullets" style="margin-top:4px">`;
+    slide.bullets.forEach(b => {
+      contentHtml += `<li>${b || '&nbsp;'}</li>`;
+    });
+    contentHtml += `</ul>`;
+  }
+  if (slide.swipe) {
+    contentHtml += `<div class="swipe-hint">${slide.swipe}</div>`;
+  }
+  return `
+    <div class="slide-wrap">
+      <div class="slide-label">${slide.label}</div>
+      <div class="mockup">
+        <div class="mockup-bg"></div>
+        <div class="card-inner">
+          <div class="card-content">${contentHtml}</div>
+          <div class="card-logo">
+            <div class="logo-text">hello comp</div>
+            <div class="logo-smile"></div>
+          </div>
+        </div>
+      </div>
+      <div class="copy-panel">
+        <pre id="text-${idx.c}-${idx.s}">${buildPlainText(slide)}</pre>
+        <button class="copy-btn" onclick="copySlide(${idx.c},${idx.s},this)">📋 Kopírovat text slidu</button>
+      </div>
+    </div>`;
+}
+
+function buildPlainText(slide) {
+  let t = slide.headline + '\n\n';
+  if (slide.body) t += slide.body + '\n';
+  if (slide.bullets) t += '\n' + slide.bullets.filter(b=>b).join('\n');
+  if (slide.swipe) t += '\n\n' + slide.swipe;
+  return t.trim();
+}
+
+function copySlide(ci, si, btn) {
+  const el = document.getElementById(`text-${ci}-${si}`);
+  navigator.clipboard.writeText(el.textContent.trim()).then(() => {
+    btn.textContent = '✅ Zkopírováno!';
+    btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = '📋 Kopírovat text slidu'; btn.classList.remove('ok'); }, 2000);
+  });
+}
+
+const page = document.getElementById('page');
+carousels.forEach((c, ci) => {
+  const sec = document.createElement('div');
+  sec.className = 'carousel-section';
+  let slidesHtml = '';
+  c.slides.forEach((s, si) => { slidesHtml += buildCard(s, {c:ci, s:si}); });
+  sec.innerHTML = `
+    <div class="carousel-meta">
+      <span class="carousel-num">Karusel ${ci+1}</span>
+      <span class="carousel-topic">${c.topic}</span>
+      <span class="carousel-tag">${c.tag}</span>
+    </div>
+    <div class="slides">${slidesHtml}</div>`;
+  page.appendChild(sec);
+  if (ci < carousels.length - 1) {
+    const hr = document.createElement('hr');
+    hr.className = 'divider';
+    hr.style.marginBottom = '48px';
+    page.appendChild(hr);
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HelloComp — Doplňující video scénáře (SEO plán + Plán práce)</title>
+<style>
+  :root {
+    --bg: #0b1120; --bg2: #111827; --card: #1e2d45; --blue: #2563eb; --lblue: #60a5fa;
+    --green: #10b981; --amber: #f59e0b; --red: #ef4444; --text: #f1f5f9; --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+  header { background: var(--bg2); border-bottom: 2px solid var(--blue); padding: 24px 32px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-size: 1.5rem; font-weight: 700; }
+  header h1 span { color: var(--lblue); }
+  .badge-new { background: var(--green); color: #fff; font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: .05em; }
+  .meta { margin-left: auto; color: var(--muted); font-size: .85rem; }
+  .filters { display: flex; gap: 8px; padding: 20px 32px; flex-wrap: wrap; background: var(--bg2); border-bottom: 1px solid #1e2d45; }
+  .filters button { background: var(--card); border: 1px solid #2d3f5a; color: var(--muted); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: .82rem; transition: all .2s; }
+  .filters button:hover, .filters button.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  main { padding: 28px 32px; display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+  .card { background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid #2d3f5a; transition: box-shadow .2s; }
+  .card:hover { box-shadow: 0 4px 24px rgba(37,99,235,.18); }
+  .card-head { padding: 16px 20px 12px; border-bottom: 1px solid #2d3f5a; cursor: pointer; user-select: none; display: flex; align-items: flex-start; gap: 10px; }
+  .card-head:hover { background: rgba(37,99,235,.06); }
+  .card-num { background: var(--blue); color: #fff; font-weight: 700; font-size: .75rem; min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .card-meta { flex: 1; }
+  .card-title { font-weight: 600; font-size: .98rem; margin-bottom: 4px; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .tag { font-size: .7rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .tag-prio100 { background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+  .tag-prio66 { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+  .tag-prio50 { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+  .tag-prio33 { background: rgba(148,163,184,.12); color: #94a3b8; border: 1px solid rgba(148,163,184,.25); }
+  .tag-cat { background: rgba(16,185,129,.1); color: #6ee7b7; border: 1px solid rgba(16,185,129,.2); }
+  .chevron { color: var(--muted); margin-left: auto; transition: transform .2s; flex-shrink: 0; }
+  .chevron.open { transform: rotate(180deg); }
+  .card-body { display: none; padding: 0 20px 16px; }
+  .card-body.open { display: block; }
+  .url-row { margin: 12px 0 8px; }
+  .url-row a { color: var(--lblue); font-size: .78rem; text-decoration: none; }
+  .url-row a:hover { text-decoration: underline; }
+  .section { margin-top: 12px; }
+  .section-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 5px; }
+  .section-label.hook { color: var(--amber); }
+  .section-label.body { color: var(--lblue); }
+  .section-label.cta { color: var(--green); }
+  .section-text { background: rgba(0,0,0,.2); border-radius: 8px; padding: 10px 12px; font-size: .88rem; line-height: 1.55; color: #e2e8f0; }
+  .chars { font-size: .72rem; color: var(--muted); margin-top: 5px; text-align: right; }
+  .copy-btn { margin-top: 14px; background: var(--blue); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: .82rem; cursor: pointer; width: 100%; transition: background .2s; }
+  .copy-btn:hover { background: #1d4ed8; }
+  .copy-btn.copied { background: var(--green); }
+  @media(max-width:600px){ main { padding: 16px; grid-template-columns: 1fr; } .filters { padding: 12px 16px; } header { padding: 16px; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Hello<span>Comp</span> — Doplňující scénáře <span class="badge-new">NOVÉ</span></h1>
+    <div style="color:var(--muted);font-size:.82rem;margin-top:4px;">Scénáře pro témata z Obsahového plánu a Plánu práce bez stávajícího scénáře</div>
+  </div>
+  <div class="meta" id="counter">Načítám...</div>
+</header>
+<div class="filters">
+  <button class="active" onclick="setFilter('all',this)">Vše</button>
+  <button onclick="setFilter('100',this)">Priorita 100 %</button>
+  <button onclick="setFilter('66',this)">Priorita 66 %</button>
+  <button onclick="setFilter('50',this)">Priorita 50 %</button>
+  <button onclick="setFilter('33',this)">Priorita 33 %</button>
+  <button onclick="setFilter('hry',this)">Hry</button>
+  <button onclick="setFilter('hw',this)">Hardware</button>
+  <button onclick="setFilter('kategorie',this)">Kategorie PC</button>
+  <button onclick="setFilter('navod',this)">Návody</button>
+</div>
+<main id="grid"></main>
+
+<script>
+const scripts = [
+  {
+    title: "Herní PC do 60 000 Kč — co za ty peníze dostanete",
+    url: "https://www.hellocomp.cz/herni-pocitac-do-60-000-kc/",
+    prio: "66",
+    cats: ["kategorie"],
+    hook: "Za 60 tisíc si dnes koupíte opravdu výkonný herní počítač. Ale víte, na co si dát pozor, abyste nepřeplatili za zbytečný výkon — nebo naopak nepodcenili budoucnost?",
+    body: "V kategorii do 60 000 Kč se pohybujeme v segmentu high-end herních počítačů. Dostanete procesory jako Ryzen 7 7700X nebo Intel Core i7-14700K a grafické karty třídy RTX 4070 Ti nebo RX 7900 GRE. To znamená plynné hraní ve 4K rozlišení s ray tracingem zapnutým naplno. Klíčový dotaz, který řešíme u každého sestavení: má smysl jít na 4K, nebo raději zůstat u 1440p a investovat do rychlého monitoru 165 Hz+? Záleží na tom, jaké hry hrajete. Pro e-sportové tituly — Valorant, CS2, Fortnite — je vyšší Hz mnohem důležitější než 4K. Pro RPG a otevřené světy naopak 4K změnu pocítíte okamžitě. V HelloComp každé sestavení testujeme před odesláním — víte přesně, na co sáháte.",
+    cta: "Přijďte si k nám promluvit o sestavení do 60 tisíc. Poradíme, co má smysl a co je jen hezky vypadající číslo na papíře. Odkaz v biu, nebo nás najdete na hellocomp.cz."
+  },
+  {
+    title: "Výkonné počítače — když herní nestačí a chcete víc",
+    url: "https://www.hellocomp.cz/vykonne-pocitace/",
+    prio: "66",
+    cats: ["kategorie"],
+    hook: "Co když potřebujete počítač, který zvládne jak hry, tak práci na plný výkon — střih videa ve 4K, 3D modelování a zároveň večerní gaming? Výkonný počítač a herní PC nejsou vždy totéž.",
+    body: "Výkonný počítač se od čistě herního liší hlavně výběrem komponent. Potřebujete více RAM — ideálně 32 nebo 64 GB pro kreativní práci. Procesor by měl mít hodně jader: AMD Ryzen 9 nebo Intel Core i9 zvládnou bez přehřátí renderovat a současně hrát. Grafická karta musí být dostatečně silná pro obě disciplíny — RTX 4080 nebo 4090 se postará o akceleraci v Adobe Premier i o plynné hraní Cyberpunka. Důležitá jsou i rychlá NVMe SSD úložiště — čekání na načtení projektu je stejně frustrující jako pády FPS. V HelloComp tato sestavení navrhujeme přímo na míru podle toho, co skutečně děláte — ne podle katalogového listu.",
+    cta: "Pokud si nejste jisti, jestli potřebujete herní nebo výkonný PC, napište nám nebo přijďte osobně. Uložíme vás od špatné investice."
+  },
+  {
+    title: "Custom herní PC na míru — proč se vyplatí víc než hotová sestava",
+    url: "https://hellocomp.cz/custom-herni-pocitac-na-miru/",
+    prio: "33",
+    cats: ["kategorie"],
+    hook: "Víte, proč většina lidí po roce lituje hotové sestavy z e-shopu? Protože ji nepřizpůsobili svým potřebám — a teď mají procesor, co přebývá, a GPU, co nestačí.",
+    body: "Custom herní PC na míru znamená, že každou komponentu volíme podle toho, co hrajete, jak dlouho chcete PC používat a jaký máte rozpočet. Není žádný důvod platit za 32 GB RAM, když hrajete CS2. Stejně tak nemá smysl šetřit na grafické kartě, pokud chcete hrát AAA tituly v 1440p. V HelloComp projdeme s vámi tři základní otázky: jaké hry, jaké rozlišení, jaký budget. Z toho složíme sestavu, která má smysl — bez zbytečného přeplácení, ale taky bez kompromisů na špatném místě. A každý custom PC u nás projde testem před odesláním. Žádné překvapení po rozbalení.",
+    cta: "Chcete custom PC přesně pro vás? Pošlete nám zprávu nebo přijďte. Sestavíme vám návrh — zdarma a bez závazků."
+  },
+  {
+    title: "Herní PC na splátky — je to rozumné řešení?",
+    url: "https://www.hellocomp.cz/herni-pocitace-na-splatky/",
+    prio: "33",
+    cats: ["kategorie"],
+    hook: "Herní PC chcete hned, ale nemáte teď celou částku najednou. Splátky mohou být rozumné řešení — ale záleží na podmínkách. Co si hlídat, aby vás to nevyšlo draho?",
+    body: "Splátky u elektroniky mají jednu zásadní výhodu: dostanete počítač teď, když ho potřebujete — ne za půl roku, až naspoříte. Ale vždy sledujte RPSN — roční procentuální sazbu nákladů. Nulové úrokové akce bývají opravdu výhodné, pokud splátky stihnete. Naopak, pokud máte u poskytovatele vyšší RPSN, zaplatíte za PC více, než je jeho cena. V HelloComp nabízíme možnost splátkového financování pro herní sestavy od 15 000 Kč výše. Vždy vám ukážeme celkovou cenu, abyste věděli, co platíte. Žádné skryté poplatky, žádná překvapení na výpisu.",
+    cta: "Chcete zjistit, jaké splátky vycházejí pro vaši sestavu? Napište nám nebo se podívejte na hellocomp.cz — tam najdete aktuální podmínky."
+  },
+  {
+    title: "Kancelářský PC — na co se zaměřit, když nepotřebujete herní výkon",
+    url: "https://www.hellocomp.cz/kancelarske-pocitace/",
+    prio: "33",
+    cats: ["kategorie"],
+    hook: "Pro práci z domu nebo kanceláře nepotřebujete herní obr. Ale levný a pomalý PC vás bude stát čas každý den. Kde je rozumná hranice?",
+    body: "Kancelářský počítač musí zvládat tři základní věci spolehlivě: prohlížeč s deseti záložkami, Teams nebo Zoom a práci v Officeu. To neznamená, že musí být pomalý — ale nemusí mít ani RTX grafiku. Pro drtivou většinu kancelářské práce bohatě stačí procesor Ryzen 5 nebo Intel Core i5, 16 GB RAM a rychlý SSD. Ten je klíčový — rozdíl mezi počítačem s HDD a SSD poznáte okamžitě při zapínání a přepínání aplikací. V HelloComp sestavujeme kancelářské PC, která jsou spolehlivá a tichá — protože hlučný počítač v kanceláři přímo trápí při videocallu. Klademe důraz na nízkou spotřebu a dlouhou životnost.",
+    cta: "Hledáte spolehlivý pracovní PC bez zbytečného přeplácení? Podívejte se na hellocomp.cz nebo napište — poradíme co přesně potřebujete."
+  },
+  {
+    title: "Počítač pro grafika — proč se nestačí podívat jen na GPU",
+    url: "https://www.hellocomp.cz/pocitace-pro-grafiky/",
+    prio: "33",
+    cats: ["kategorie"],
+    hook: "Spousta grafiků si koupí PC se silnou grafickou kartou a pak se diví, proč Photoshop nebo Illustrator stále lagují. Chyba není v GPU — je jinde.",
+    body: "Pro grafické práce — Photoshop, Illustrator, After Effects, Lightroom — je nejdůležitější kombinace RAM a rychlého úložiště. Procesor musí mít dostatek jader pro vícevláknové renderování, ale grafická karta hraje různou roli podle softwaru. Adobe produkty využívají GPU pro akceleraci, ale záleží na konkrétní aplikaci. Co každý grafik potřebuje jistě: 32 GB RAM jako základ, nejlépe 64 GB pro náročné projekty, rychlý NVMe SSD na projekty a druhý disk na zálohy, a kalibrovaný monitor s přesným podáním barev — to je investice, která se vyplatí. V HelloComp sestavujeme pracovní stanice pro grafiky i na základě konkrétního softwaru, se kterým pracujete.",
+    cta: "Pracujete v grafice a chcete PC, který vás nebude brzdit? Napište nám jaký software používáte — sestavíme přesně to, co potřebujete."
+  },
+  {
+    title: "PC na střih videa — co opravdu ovlivní rychlost renderování",
+    url: "https://www.hellocomp.cz/pocitace-na-strih-videa/",
+    prio: "33",
+    cats: ["kategorie"],
+    hook: "Renderujete hodinu a čekáte hodinu? Není to osud — je to špatná sestava. Tady jsou tři věci, které reálně zkrátí čas renderování na zlomek.",
+    body: "Střih videa je jednou z nejvíce náročných disciplín na hardware. Tři klíčové faktory: za prvé, procesor — čím více jader, tím lépe. AMD Ryzen 9 7950X nebo Intel Core i9-14900K jsou špičkou pro střih. Za druhé, RAM — pro 4K střih potřebujete minimálně 32 GB, lépe 64 GB. Za třetí, GPU akcelerace — Premiere Pro a DaVinci Resolve využívají GPU kartu pro renderování; RTX 4070 nebo výše výrazně zkrátí export. A nezapomeňte na úložiště: NVMe SSD s rychlostí 5 GB/s plus je jiný svět oproti klasickému SSD. V HelloComp sestavujeme střižny pro Youtubeiry, filmové tvůrce i firemní videoprodukce.",
+    cta: "Chcete PC, který zvládne 4K střih bez čekání? Poradíme vám konkrétní sestavu podle vašeho rozpočtu. Odkaz v biu."
+  },
+  {
+    title: "PC pro CAD — co potřebuje konstruktér a architekt",
+    url: "https://www.hellocomp.cz/pocitace-pro-cad/",
+    prio: "33",
+    cats: ["kategorie"],
+    hook: "CAD programy jako AutoCAD, SolidWorks nebo Revit mají specifické nároky na hardware, které se liší od herních PC. Investice do špatné sestavy vás bude stát produktivitu každý den.",
+    body: "Pro CAD práci jsou klíčové tři věci: stabilní výkon procesoru, dostatek RAM a profesionální grafická karta. CAD software často pracuje více se single-core výkonem procesoru než s počtem jader — proto Intel Core i7 nebo i9 s vysokými taktovacími frekvencemi tu funguje výborně. RAM: minimum 32 GB, pro větší sestavy v Revit nebo komplexní modely v SolidWorks ideálně 64 GB. Grafická karta: herní GPU fungují, ale profesionální karty Nvidia Quadro nebo AMD Radeon Pro mají certifikaci pro CAD software a stabilnější ovladače. To může rozhodnout při práci na kritickém projektu. V HelloComp sestavujeme pracovní stanice pro architekty, konstruktéry i strojní inženýry.",
+    cta: "Pracujete s CAD softwarem a chcete sestavu, která to zvládne bez kompromisů? Napište nám — poradíme přesně pro váš software."
+  },
+  {
+    title: "Nejnáročnější hry 2025 — jak zjistit, jestli na ně váš PC stačí",
+    url: "https://www.hellocomp.cz/hry-nejnarocnejsi-a-vyber-pc/",
+    prio: "100",
+    cats: ["hry"],
+    hook: "Spustíte nový titul, nastavíte ultra detaily — a FPS padají pod 30. Jak zjistit, jestli problém je v GPU, RAM nebo procesoru, než investujete do nové komponenty?",
+    body: "Nejnáročnější hry roku 2025 — Alan Wake 2, Star Wars Outlaws, Black Myth: Wukong nebo Indiana Jones — kladou velké nároky hlavně na grafickou kartu a RAM. Ale diagnóza je důležitá: pokud máte vytíženou GPU na 99 % a CPU pod 60 %, váš procesor nestačí, ne grafika. Pokud je to naopak, GPU je úzké místo. Pro nejnáročnější tituly v 1440p nebo 4K dnes potřebujete minimálně RTX 4070 nebo RX 7800 XT. Důležité je také nastavit XMP profil v BIOSu — spousta lidí má RAM, co běží na poloviční rychlosti, a neví o tom. Tuhle chybu vidíme v servisu opakovaně. V HelloComp při sestavování každého PC rovnou kontrolujeme, jestli je XMP/EXPO profil správně nastaven.",
+    cta: "Chcete vědět, jestli váš PC zvládne nejnovější tituly, nebo potřebujete upgrade? Napište nám — podíváme se na váš benchmark a poradíme."
+  },
+  {
+    title: "Nenáročné hry a PC do 20 000 Kč — skvělá kombinace pro začátečníky",
+    url: "https://www.hellocomp.cz/hry-nenarocne-a-vyber-pc-do-20000/",
+    prio: "100",
+    cats: ["hry", "kategorie"],
+    hook: "Chcete začít hrát hry na PC, ale nechcete utrácet majlant? Dobrá zpráva: pro většinu populárních titulů nepotřebujete top sestavu. Tady je co koupit a proč to stačí.",
+    body: "Nenáročné hry — Minecraft, Stardew Valley, Among Us, Rocket League, staré díly Call of Duty nebo indie tituly — běží skvěle i na PC do 20 000 Kč. Co opravdu potřebujete: procesor Ryzen 5 nebo Intel Core i5, 16 GB RAM, a grafická karta GTX 1660 Super nebo RX 6600 XT postačí pro 1080p hraní těchto titulů na ultra detaily. Klíčové je, abyste nepodcenili SSD — herní zážitek s HDD je frustrující i u nenáročných her kvůli pomalému načítání. V HelloComp sestavy do 20 tisíc optimalizujeme tak, aby měly smysl a vydržely aspoň 3–4 roky bez upgradu.",
+    cta: "Chcete vstoupit do PC gamingu bez zbytečně velké investice? Podívejte se na naše sestavy do 20 000 Kč na hellocomp.cz — nebo se zeptejte, co pro vás má smysl."
+  },
+  {
+    title: "Chlazení PC a teploty — kdy se bát a kdy je všechno v pořádku",
+    url: "https://www.hellocomp.cz/chlazeni-a-teploty-pc/",
+    prio: "50",
+    cats: ["navod", "hw"],
+    hook: "Váš PC při hraní dosahuje 85 stupňů — je to problém? A co 95 stupňů na procesoru? Teploty jsou nejčastější otázka v servisu. Tady jsou čísla, na která se skutečně dívat.",
+    body: "Bezpečné teploty se liší podle komponentů. Procesory Intel a AMD jsou navrženy na bezpečný provoz do 90–100 °C, ale dlouhodobě chcete být pod 80 °C při zátěži. Grafické karty Nvidia mají teplotní limit kolem 83–88 °C — pokud na něj narážíte opakovaně, přemýšlejte o zlepšení proudění vzduchu v skříni. Na co se zaměřit: správné usazení CPU chladiče s tepelnou pastou, dostatečný airflow ve skříni — ideálně více přívod vzduchu zepředu než odtah vzadu, čistota PC od prachu alespoň jednou za půl roku. Nejčastější chyba, kterou vidíme: plná skříň prachu a fabriková tepelná pasta stará tři roky. Výsledek? Zbytečný throttling a nižší výkon.",
+    cta: "Máte obavy z teplot svého PC, nebo ho chcete správně vyčistit a servisovat? Přijďte do HelloComp — prohlídka je rychlá a řekneme vám pravdu."
+  },
+  {
+    title: "BIOS — jak vstoupit, co tam najdete a co raději nenastavovat",
+    url: "https://www.hellocomp.cz/bios-jak-spustit-nastaveni-a-sprava/",
+    prio: "50",
+    cats: ["navod"],
+    hook: "BIOS zní děsivě, ale je to jen nastavení, které se spustí ještě před Windows. A jedna věc, která vám tam může výrazně zlepšit výkon, trvá nastavit třicet vteřin.",
+    body: "Do BIOSu se dostanete při spuštění PC stisknutím klávesy — nejčastěji Delete, F2 nebo F10 podle výrobce základní desky. Hned na začátku zkontrolujte dvě věci: pořadí bootování — první by měl být váš systémový SSD disk, ne USB nebo DVD. A za druhé, XMP nebo EXPO profil pro RAM. Pokud ho nemáte zapnutý, vaše paměti pravděpodobně běží na 2133 MHz místo deklarovaných 3200 nebo 5600 MHz. To je obrovský výkonnostní rozdíl, který nepoznáte nikde jinde než tady. Ostatní nastavení — jako přetaktování CPU nebo voltáže — nechte na zkušených, pokud nevíte přesně co děláte.",
+    cta: "Nevíte si rady s BIOSem nebo chcete správně nastavit XMP profil? Napište nám nebo přijďte — nastavíme to za vás a nic nerozbijeme."
+  },
+  {
+    title: "Zrychlení PC a optimalizace Windows — co reálně funguje",
+    url: "https://www.hellocomp.cz/zrychleni-pc-a-optimalizace/",
+    prio: "50",
+    cats: ["navod"],
+    hook: "YouTube je plný videí o zrychlení PC pomocí záhadných tweaků v registrech a vypnutí 37 služeb. Víte co z toho reálně funguje? Skoro nic. Tady jsou tři věci, které skutečně pomáhají.",
+    body: "Tři ověřené způsoby jak zrychlit PC: Za prvé, přeinstalujte Windows čistě — bloatware a nahromaděné soubory za roky používání zpomalují systém víc než cokoliv jiného. Za druhé, zkontrolujte startup v Task Manageru — Ctrl+Shift+Esc, záložka Startup. Vypněte vše, co se spouští automaticky a nepotřebujete. To přímo zkrátí čas bootování. Za třetí, pokud stále máte HDD jako systémový disk, upgrade na SSD je nejlevnější a nejrazantnější zrychlení, které pro PC uděláte. Zvyšování výkonu pomocí registry tweaků nebo softwaru jako GameBooster jsou vesměs placebo. Počítač nespeed-boost, opravte ho správně.",
+    cta: "Váš PC je pomalý a nevíte proč? Přijďte na diagnostiku do HelloComp — zjistíme přesnou příčinu a navrhneme rozumné řešení."
+  },
+  {
+    title: "Jak vybrat procesor — AMD nebo Intel a na co se dívat",
+    url: "https://www.hellocomp.cz/jak-vybrat-procesor/",
+    prio: "50",
+    cats: ["hw"],
+    hook: "AMD nebo Intel? Tato otázka rozděluje herní komunitu více než cokoliv jiného. Pravda je, že odpověď závisí na tom, k čemu PC budete používat — a teď je to zajímavější než kdy dřív.",
+    body: "Pro herní počítač v roce 2025 jsou nejlepší procesory v poměru cena/výkon: AMD Ryzen 5 7600X a Ryzen 7 7700X pro střední třídu, Intel Core i5-14600K a i7-14700K jako přímá konkurence. AMD má výhodu v energetické účinnosti a multi-core výkonu. Intel tradičně vede v single-core výkonu, důležitém pro hry. Co sledovat při výběru: TDP — spotřeba ovlivní chlazení, podpora paměti DDR4 vs DDR5, kompatibilita s paticí a základní deskou. Nový procesor neznamená nutně nová základní deska — ale někdy ano. V HelloComp vždy kontrolujeme kompatibilitu celé sestavy před objednáním.",
+    cta: "Vybíráte procesor a nevíte, do čeho jít? Napište nám svůj use-case a budget — doporučíme konkrétní model s odůvodněním."
+  },
+  {
+    title: "Upgrade PC — co upgradovat jako první a co nemá smysl",
+    url: "https://www.hellocomp.cz/upgrade-pc/",
+    prio: "50",
+    cats: ["navod", "hw"],
+    hook: "Váš PC se zpomalil a přemýšlíte, co upgradovat. Nový procesor? GPU? Více RAM? Špatná volba tu může znamenat zbytečně utracené peníze bez reálného efektu.",
+    body: "Jak postupovat při upgradu: Nejdřív zjistěte, kde je úzké místo. Spusťte náročnější hru a sledujte v MSI Afterburner nebo Task Manageru, co je na 100 % — CPU nebo GPU. Pokud je to GPU, nová grafická karta bude mít největší efekt. Pokud CPU, možná stačí lepší chlazení nebo OC RAM. Pokud máte stále méně než 16 GB RAM nebo HDD jako hlavní disk — to jsou nejlevnější upgrady s nejvyšším efektem. Nezapomínejte na kompatibilitu: nová grafická karta potřebuje dostatečný zdroj PC, nový procesor může vyžadovat novou základní desku. V HelloComp nabízíme upgrade konzultace — přijdete s aktuální sestavou, odejdete s plánem.",
+    cta: "Chcete upgradovat PC, ale nevíte kde začít? Přijďte do HelloComp — diagnostikujeme sestavu a navrhneme smysluplný postup."
+  },
+  {
+    title: "RGB a design počítače — jak na to správně a bez zbytečných výdajů",
+    url: "https://www.hellocomp.cz/rgb-design-pocitace/",
+    prio: "50",
+    cats: ["hw"],
+    hook: "RGB světla na PC — zbytečný luxus nebo součást setup identity? Než to zavrhnete nebo naopak přeinvestujete do svetelné show, tady je co skutečně stojí za to.",
+    body: "RGB má jednu praktickou nevýhodu: management softwaru. Každý výrobce — Corsair, ASUS Aura, MSI Mystic Light, Gigabyte Fusion — má vlastní aplikaci. Pokud máte různé značky, synchronizace je bolest. Tip: vyberte jednu značku napříč komponentami, nebo použijte OpenRGB jako univerzální řešení. Co reálně ovlivňuje vzhled setup: tempered glass skříň, RGB ventilátory a RAM pásky. Procesorový chladič se světlem je hezký bonus. Kabely jsou skvělý detail — sleeved kabely nebo cable management výrazně změní celkový dojem, a to bez připlácení za efektní komponenty. Světlo nepřidá výkon, ale dobrý setup motivuje. Jen ať to neslouží jako náhrada za výkon.",
+    cta: "Stavíte nebo upgradujete setup a chcete, aby vypadal skvěle? Poradíme vám, co koupit za rozumné peníze. Napište nám nebo navštivte hellocomp.cz."
+  },
+  {
+    title: "Jak vybrat klávesnici — herní vs kancelářská, mechanická vs membránová",
+    url: "https://www.hellocomp.cz/jak-vybrat-klavesnici/",
+    prio: "50",
+    cats: ["hw"],
+    hook: "Klávesnice je věc, které se každý den dotknete miliardkrát. Přesto ji lidé vybírají naposledy a za nejméně peněz. Jedna špatná volba znamená roky nelibého psaní.",
+    body: "Základní volba: mechanická nebo membránová. Membránové klávesnice jsou tiché a levnější — dobré pro kanceláře. Mechanické mají přesnější aktivaci, delší životnost a výraznější zpětnou vazbu — skvělé pro gaming i pro typisty. Typy přepínačů: červené switche jsou tiché a lehké — oblíbené u hráčů, modré jsou hlasité s taktilní zpětnou vazbou — milují je pisatelé, hnědé jsou kompromis. Pro herní klávesnici hledejte: anti-ghosting nebo n-key rollover pro spolehlivé zaznamenání všech současných úhozů, odolnou konstrukci a pokud možno odnímatelný kabel. Velikost: full size s numpadmem, TKL bez numpadu pro více místa na myš, nebo kompaktní 60/65 %.",
+    cta: "Hledáte klávesnici do gamingového setup nebo na práci? Poradíme vám konkrétní model podle vašich potřeb a rozpočtu."
+  },
+  {
+    title: "Jak vybrat zdroj PC — proč šetřit na PSU je špatný nápad",
+    url: "https://www.hellocomp.cz/jak-vybrat-zdroj/",
+    prio: "50",
+    cats: ["hw"],
+    hook: "Zdroj je komponenta, na které se nejčastěji šetří — a přitom to je ta, která může spálit všechno ostatní. Tady je jak vybrat správně a co nikdy nekupovat.",
+    body: "Dvě klíčová kritéria: výkon v wattech a certifikace 80 Plus. Pro herní PC s RTX 4070 a Ryzen 7 potřebujete minimálně 650 W, pro RTX 4090 sestavy 850–1000 W. Vždy kupujte s rezervou 20–30 % nad aktuální spotřebou — to prodlužuje životnost a snižuje hluk. Certifikace 80 Plus Gold nebo Platinum znamená vyšší účinnost — méně tepla, nižší účty za elektřinu a spolehlivější provoz. Co nikdy nekupovat: neznačkové zdroje bez certifikace za neuvěřitelně nízkou cenu. Levný zdroj může způsobit nestabilitu celého systému, nebo v nejhorším případě způsobit požár. V HelloComp používáme výhradně zdroje od prověřených výrobců — Corsair, be quiet!, Seasonic — s minimálně 80 Plus Gold certifikací.",
+    cta: "Nevíte jaký zdroj zvolit pro vaši sestavu? Napište nám složení PC — spočítáme spotřebu a doporučíme správný model."
+  },
+  {
+    title: "Snímek a nahrávání obrazovky na PC — nejlepší způsoby v 2025",
+    url: "https://www.hellocomp.cz/snimek-a-nahravani-obrazovky-pc/",
+    prio: "50",
+    cats: ["navod"],
+    hook: "Chcete pořídit screenshot nebo nahrávat gameplay bez toho, aby vám to vzalo výkon? Windows, NVIDIA a AMD mají každý svůj způsob — a jeden z nich je výrazně lepší než ostatní.",
+    body: "Pro screenshot: nejrychlejší je Win+Shift+S pro výběr oblasti, nebo Print Screen pro celou obrazovku uloženou do schránky. Pro hraní: Nvidia ShadowPlay — NVIDIA Overlay, Alt+Z — nahrává na GPU a nevytěžuje CPU. Pro AMD karty je to AMD ReLive s podobnou funkcí. Xbox Game Bar ve Windows 11 funguje na všech sestavách a je dostatečný pro základní nahrávání. Pro streamy nebo kvalitní záznamy doporučujeme OBS Studio — zdarma, flexibilní nastavení bitrate a enkodéru. Klíč je nastavit NVENC nebo AMF hardwarový enkodér v OBS, ne softwarový CPU enkodér — to výrazně snižuje zátěž.",
+    cta: "Chcete nahrávat gameplay nebo stream a nevíte jak nastavit OBS? Napište nám — nebo se podívejte na naše návody na hellocomp.cz."
+  },
+  {
+    title: "Herní atlas žánrů — jaký PC potřebujete na různé typy her",
+    url: "https://www.hellocomp.cz/hry-atlas-zanru/",
+    prio: "50",
+    cats: ["hry"],
+    hook: "FPS, RPG, strategie, simulátor — každý žánr má jiné nároky na hardware. Herní PC do 20 tisíc zvládne Minecraft, ale na Microsoft Flight Simulator za stejné peníze přijdete zkrátka.",
+    body: "Tady je přehled nároků podle žánru: E-sport FPS — Valorant, CS2, Fortnite — relativně nenáročné, důležité je ale 144+ Hz monitor a nízká latence. AAA open world — Cyberpunk 2077, Starfield, Ghost of Tsushima — náročné na GPU, ideálně RTX 4070 a výš pro 1440p. Strategie — Civilization, Total War — hodně závisí na CPU, velké mapy kladou nároky na počet jader. Simulátory — Flight Simulator, BeamNG.drive — extrémní nároky na CPU a RAM, Flight Sim v podstatě nemá dno. Indie a starší tituly — nenáročné, zvládne skoro cokoliv. Podle toho, co hrajete, dokážeme v HelloComp sestavit přesně cílený počítač — ne generický herní stroj.",
+    cta: "Řekněte nám, jaké hry hrajete — a my vám řekneme, co přesně potřebujete. Kontakt na hellocomp.cz nebo v biu."
+  },
+  {
+    title: "Hry zdarma pro PC — kde je najít a co skutečně stojí za to hrát",
+    url: "https://www.hellocomp.cz/hry-tipy-na-hry-zdarma/",
+    prio: "50",
+    cats: ["hry"],
+    hook: "Free-to-play hry mají špatnou pověst — pay-to-win a grind bez konce. Ale jsou výjimky, které jsou opravdu skvělé a zdarma. Tady jsou ty nejlepší.",
+    body: "Na Steamu najdete v sekci Free-to-Play řadu skutečně kvalitních titulů. Dota 2 — komplexní MOBA s obrovskou komunitou. Path of Exile — hloubkové action RPG s dekádou obsahu. Warframe — kooperativní sci-fi akce s pravidelným updatem. Genshin Impact — vizuálně nádherné RPG s volbou neplatit. Epic Games Store každý týden nabízí hry zdarma — stojí za to si vytvořit účet a sledovat. Také GOG, Humble Bundle a Prime Gaming nabízejí hry zdarma pro odběratele. Pro hry zdarma nemusíte mít výkonný PC — většina z nich cílí na co nejširší základnu hráčů.",
+    cta: "Hledáte vstupní bod do PC gamingu bez velké investice? Podívejte se na naše sestavy do 20 000 Kč — zvládnou drtivou většinu populárních free-to-play titulů."
+  },
+  {
+    title: "Aktualizace ovladačů grafické karty — jak na to a jak předejít problémům",
+    url: "https://www.hellocomp.cz/aktualizace-ovladacu-graficke-karty/",
+    prio: "50",
+    cats: ["navod", "hw"],
+    hook: "Aktualizovat ovladače GPU je správný zvyk — ale špatně provedená aktualizace může způsobit víc problémů než vyřeší. Jeden nástroj vám usnadní celý proces.",
+    body: "Proč aktualizovat ovladače GPU: nové tituly dostávají optimalizované ovladače, opravují se chyby a zlepšuje se výkon. Jak na to správně: použijte DDU — Display Driver Uninstaller — pro čistou reinstalaci. Stáhněte ho z Guru3D, spusťte v Safe Mode a odstraňte staré ovladače. Pak nainstalujte nejnovější verzi z webu Nvidia nebo AMD. Alternativně: Nvidia GeForce Experience a AMD Radeon Software notifikuje automaticky. Ale pozor — ne vždy se vyplatí ihned skočit na nejnovější verzi. Pokud vám aktuální sestava funguje perfektně, počkejte pár dní po vydání, jestli se nevyskytnou problémy u jiných uživatelů. Komunity na Reddit r/nvidia a r/AMDHelp rychle upozorní na problematické verze.",
+    cta: "Máte problémy s ovladači GPU nebo nevíte jak správně provést reinstalaci? Napište nám — pomůžeme vám projít procesem."
+  }
+];
+
+function toggle(head) {
+  const body = head.nextElementSibling;
+  const chev = head.querySelector('.chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+function copyScript(btn, i) {
+  const s = scripts[i];
+  const text = `🎬 HOOK:\n${s.hook}\n\n📖 OBSAH:\n${s.body}\n\n📣 CTA:\n${s.cta}`;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Zkopírováno';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Kopírovat scénář'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+let currentFilter = 'all';
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  filterCards();
+}
+
+function filterCards() {
+  document.querySelectorAll('.card').forEach(card => {
+    const p = card.dataset.prio;
+    const cats = card.dataset.cats.split(',');
+    let show = true;
+    if (currentFilter !== 'all') {
+      if (['100','66','50','33'].includes(currentFilter)) show = p === currentFilter;
+      else show = cats.includes(currentFilter);
+    }
+    card.style.display = show ? '' : 'none';
+  });
+  const visible = document.querySelectorAll('.card:not([style*="none"])').length;
+  document.getElementById('counter').textContent = visible + ' scénářů';
+}
+
+function renderCards() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = scripts.map((s, i) => {
+    const totalChars = s.hook.length + s.body.length + s.cta.length;
+    const prioClass = `tag-prio${s.prio}`;
+    const prioLabel = s.prio === '100' ? 'Priorita 100 %' : s.prio === '66' ? 'Priorita 66 %' : s.prio === '50' ? 'Priorita 50 %' : 'Priorita 33 %';
+    const catTags = s.cats.map(c => {
+      const labels = {hry:'Hry', hw:'Hardware', kategorie:'Kategorie PC', navod:'Návod'};
+      return `<span class="tag tag-cat">${labels[c]||c}</span>`;
+    }).join('');
+    return `<div class="card" data-prio="${s.prio}" data-cats="${s.cats.join(',')}">
+      <div class="card-head" onclick="toggle(this)">
+        <div class="card-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="card-meta">
+          <div class="card-title">${s.title}</div>
+          <div class="tags">
+            <span class="tag ${prioClass}">${prioLabel}</span>
+            ${catTags}
+          </div>
+        </div>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="card-body">
+        ${s.url ? `<div class="url-row">🔗 <a href="${s.url}" target="_blank">${s.url}</a></div>` : ''}
+        <div class="section"><div class="section-label hook">▶ Hook (první 3 vteřiny)</div><div class="section-text">${s.hook}</div></div>
+        <div class="section"><div class="section-label body">📖 Obsah</div><div class="section-text">${s.body}</div></div>
+        <div class="section"><div class="section-label cta">📣 CTA</div><div class="section-text">${s.cta}</div></div>
+        <div class="chars">${totalChars} znaků</div>
+        <button class="copy-btn" onclick="copyScript(this,${i})">Kopírovat scénář</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('counter').textContent = scripts.length + ' scénářů';
+}
+
+renderCards();
+</script>
+</body>
+</html>

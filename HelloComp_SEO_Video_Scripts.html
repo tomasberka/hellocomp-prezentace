@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HelloComp — SEO Video Scénáře</title>
+<style>
+  :root {
+    --bg: #0D1117; --surface: #161B22; --surface2: #1C2128;
+    --border: #30363D; --text: #E6EDF3; --muted: #8B949E;
+    --amber: #F0A500; --green: #3FB950; --blue: #58A6FF;
+    --red: #FF6B6B; --purple: #BC8CFF; --teal: #39D0D0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: var(--text); }
+  header span { font-size: 0.85rem; color: var(--muted); }
+  .controls { padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .search { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; width: 260px; outline: none; }
+  .search:focus { border-color: var(--blue); }
+  .filter-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.82rem; transition: all .15s; }
+  .filter-btn:hover { border-color: var(--blue); color: var(--text); }
+  .filter-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .count { margin-left: auto; font-size: 0.82rem; color: var(--muted); }
+  .grid { padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; max-width: 960px; margin: 0 auto; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .card-header { padding: 14px 18px; cursor: pointer; display: flex; align-items: center; gap: 10px; user-select: none; }
+  .card-header:hover { background: var(--surface2); }
+  .priority { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+  .p100 { background: rgba(63,185,80,.15); color: var(--green); }
+  .p66  { background: rgba(88,166,255,.15); color: var(--blue); }
+  .p50  { background: rgba(240,165,0,.15); color: var(--amber); }
+  .p25  { background: rgba(139,148,158,.15); color: var(--muted); }
+  .card-title { font-size: 0.95rem; font-weight: 600; flex: 1; }
+  .tag { font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); }
+  .chevron { color: var(--muted); font-size: 0.8rem; transition: transform .2s; }
+  .chevron.open { transform: rotate(180deg); }
+  .card-body { display: none; padding: 0 18px 18px; flex-direction: column; gap: 12px; }
+  .card-body.open { display: flex; }
+  .seo-url { font-size: 0.78rem; color: var(--teal); background: rgba(57,208,208,.07); border: 1px solid rgba(57,208,208,.2); border-radius: 6px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 6px; }
+  .seo-url a { color: var(--teal); text-decoration: none; }
+  .seo-url a:hover { text-decoration: underline; }
+  .hook { background: rgba(240,165,0,.08); border-left: 3px solid var(--amber); padding: 10px 14px; border-radius: 0 6px 6px 0; font-size: 0.88rem; line-height: 1.6; }
+  .hook-label { font-size: 0.72rem; color: var(--amber); font-weight: 700; margin-bottom: 4px; letter-spacing: .05em; }
+  .body-text { font-size: 0.88rem; line-height: 1.75; color: #C9D1D9; white-space: pre-wrap; }
+  .cta-block { background: rgba(63,185,80,.08); border-left: 3px solid var(--green); padding: 10px 14px; border-radius: 0 6px 6px 0; font-size: 0.88rem; line-height: 1.6; }
+  .cta-label { font-size: 0.72rem; color: var(--green); font-weight: 700; margin-bottom: 4px; letter-spacing: .05em; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; }
+  .char-count { font-size: 0.76rem; color: var(--muted); }
+  .copy-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all .15s; }
+  .copy-btn:hover { border-color: var(--green); color: var(--green); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); background: rgba(63,185,80,.1); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎬 HelloComp — SEO Video Scénáře</h1>
+  <span>30 scénářů • propojeno se SEO plánem • vykání • camera-ready</span>
+</header>
+<div class="controls">
+  <input class="search" type="text" placeholder="🔍 Hledat téma..." oninput="filterCards()">
+  <button class="filter-btn active" onclick="setFilter('all',this)">Vše</button>
+  <button class="filter-btn" onclick="setFilter('p100',this)">⭐ Priorita 100 %</button>
+  <button class="filter-btn" onclick="setFilter('p66',this)">🔵 Priorita 66 %</button>
+  <button class="filter-btn" onclick="setFilter('navod',this)">🔧 Návody</button>
+  <button class="filter-btn" onclick="setFilter('hardware',this)">💾 Hardware</button>
+  <button class="filter-btn" onclick="setFilter('lifestyle',this)">🎮 Lifestyle/Gaming</button>
+  <span class="count" id="count">30 scénářů</span>
+</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const scripts = [
+{
+  title: "Herní PC do 20 000 Kč — co za to reálně dostanete?",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","budget"],
+  seoUrl: "https://www.hellocomp.cz/herni-pocitac-do-20-000-kc/",
+  seoLabel: "hellocomp.cz/herni-pocitac-do-20-000-kc/",
+  hook: "Za dvacet tisíc herní PC? Vážně? Ano, vážně — a já vám teď ukážu přesně, co za tuto částku dostanete a proč je to dnes jeden z nejoblíbenějších cenových bodů na trhu.",
+  body: `Začněme realitou. Herní PC do 20 000 Kč v dnešní době zvládne naprostou většinu her na středních až vysokých nastaveních při Full HD rozlišení. To není marketingový tah — to jsou čísla z benchmarků.
+
+Konkrétně mluvíme o procesorech jako AMD Ryzen 5 7600 nebo Intel Core i5-13400, které v kombinaci s grafikou Radeon RX 7600 nebo GeForce RTX 4060 dávají herní výkon, který ještě před třemi lety stál dvojnásobek.
+
+Důležité je ale vědět, co v té ceně dostanete a co ne. Dostanete solidní procesor, dostatek RAM — ideálně 16 GB DDR5 — a rychlý NVMe SSD. Co obvykle není součástí takové sestavy? Monitor, klávesnice, myš — ty jsou nad rámec tohoto rozpočtu.
+
+Dalším klíčovým faktorem je kvalita PC skříně a zdroje. U levnějších sestav se někdy šetří právě tam — a to může mít přímý dopad na životnost celého počítače. Proto doporučuji kupovat u ověřených prodejců, kteří sestavy staví sami a ručí za každou komponentu.
+
+My v HelloComp každou sestavu testujeme ještě před odesláním — dostanete PC, který funguje od první minuty, bez nutnosti cokoliv doinstalovat nebo nastavovat.`,
+  cta: "Napište do komentářů, jaké hry hodláte hrát — rád vám doporučím, která sestava v tomto rozpočtu bude pro vás ta nejlepší. Odkaz na aktuální nabídku je v popisu."
+},
+{
+  title: "Herní PC do 30 000 Kč — kde je hranice skutečného výkonu?",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","budget"],
+  seoUrl: "https://www.hellocomp.cz/herni-pocitac-do-30-000-kc/",
+  seoLabel: "hellocomp.cz/herni-pocitac-do-30-000-kc/",
+  hook: "Třicet tisíc korun — to je magická hranice, za kterou se herní PC přestává kompromisovat a začíná opravdu excelovat. Dneska si projdeme přesně, co vám tato investice přinese.",
+  body: `Za 30 000 korun vstupujete do kategorie, kde už opravdu nemusíte nic řešit. Procesory třídy Ryzen 7 7700 nebo Intel Core i7-13700 v kombinaci s grafikou RTX 4070 nebo RX 7700 XT vám umožní hrát na vysokých nebo ultra nastaveních v rozlišení 1440p.
+
+A 1440p je dnes zlatý střed — krásný obraz, rozumné nároky na GPU, výborný poměr cena-výkon. Ani 4K s jeho přehnanými nároky, ani Full HD, kde výkon přebývá.
+
+Ve 30 000 korunách je navíc prostor na 32 GB DDR5 RAM. To je budoucnost — nové hry jako Hogwarts Legacy nebo Alan Wake 2 rádi spotřebují přes 20 GB při modování nebo vysoké kvalitě textur.
+
+Dostanete také větší NVMe SSD — ideálně 1 TB — takže se nebudete muset rozhodovat, co nainstalovat a co smazat. A solidní PC skříň s dobrým airflow, která udrží celou sestavu v teplotně přijatelném režimu i při delším herním sezení.
+
+V HelloComp si sestavy za tuto cenu sami konfigurujeme a testujeme tak, aby vám vydržely klidně 5 až 7 let bez nutnosti výraznějšího upgradu.`,
+  cta: "Máte dotaz na konkrétní hru nebo využití? Napište do komentářů nebo nám zavolejte — rádi vám doporučíme přesnou konfiguraci. Odkaz na aktuální nabídku najdete v popisu."
+},
+{
+  title: "Nejlepší herní počítače — jak je skutečně poznat?",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","výběr"],
+  seoUrl: "https://www.hellocomp.cz/nejlepsi-herni-pocitace/",
+  seoLabel: "hellocomp.cz/nejlepsi-herni-pocitace/",
+  hook: "Co přesně znamená nejlepší herní počítač? Toto slovo používá každý prodejce — ale skutečná kritéria pro to, co je opravdu nejlepší, jsou konkrétní a měřitelná. Pojďme si je projít.",
+  body: `Nejlepší herní PC není nutně to nejdražší. Nejlepší herní PC je takové, které maximálně naplňuje vaše konkrétní potřeby za co nejrozumnější cenu. A proto vám dám tři kritéria, podle kterých nejlepší sestavy skutečně posuzuji.
+
+Za prvé — výkon v cílových hrách a rozlišení. Pokud hrajete převážně esport tituly jako CS2, Valorant nebo League of Legends, nepotřebujete RTX 4090. Potřebujete procesor s vysokou frekvencí jádra a 144Hz nebo 240Hz monitor. Pokud hrajete AAA hry v 4K, potřebujete GPU z vyšší třídy.
+
+Za druhé — životnost sestavy. Nejlepší herní PC je takové, které za 4 roky nepotřebuje kompletní výměnu, ale jen případný upgrade GPU. To znamená dostatek RAM, dobrý zdroj s rezervou a budoucnostně odolná platforma — například AMD AM5, která bude podporována minimálně do roku 2027.
+
+Za třetí — podpora a záruka. Zárukou 3 roky a servisem v případě problémů se liší skutečný výrobce sestav od překupníka. V HelloComp každý PC sestavujeme a testujeme ručně — a to je důvod, proč nám zákazníci věří.
+
+Přehled aktuálně nejlépe hodnocených herních sestav najdete v odkazu v popisu.`,
+  cta: "Napište do komentářů svůj budget a já nebo někdo z týmu vám doporučíme konkrétní model, který pro vás bude skutečně nejlepší."
+},
+{
+  title: "Levné herní počítače — na co si dát pozor?",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","budget"],
+  seoUrl: "https://www.hellocomp.cz/levne-herni-pocitace/",
+  seoLabel: "hellocomp.cz/levne-herni-pocitace/",
+  hook: "Levný herní počítač — to jsou dvě slova, která se navzájem nevylučují. Ale je potřeba vědět, kde je skutečná hranice a na co si dát pozor, abyste nekoupili problém za výhodnou cenu.",
+  body: `Tady jde v první řadě o definici pojmu levný. V kontextu herních PC dnes mluvíme o cenách do 15 až 20 tisíc korun. Za tuto částku dostanete funkční herní sestavu — ale musíte vědět, co v ceně je a co není.
+
+Co by levný herní PC měl rozhodně obsahovat: alespoň 16 GB RAM, SSD jako systémový disk — žádné HDD na systém! — a GPU, které zvládne Full HD gaming na středních nastaveních.
+
+Co dělá levný PC špatnou koupí? Pochybné komponenty od neznámých výrobců, příliš slabý zdroj bez certifikace, nebo starý hardware vydávaný za nový. Dalším rizikem je nízká záruka nebo nulový servis po prodeji.
+
+Kupovat levné herní PC od neznámého prodejce na bazaru bez záruky je ruleta. Třeba dostanete výhodný kus, třeba dostanete problém, který se projeví za tři měsíce.
+
+V HelloComp máme v nabídce repasované herní počítače — tedy ověřené zánovní sestavy s garancí funkčnosti a zárukou. To je chytrá cesta, jak dostat maximální výkon za nízkou cenu bez rizika.`,
+  cta: "Byl váš první herní PC levná výhodná koupě, nebo jste si ho pořádně připlatili? Napište do komentářů — zajímá mě vaše zkušenost. Odkaz na naši nabídku levných herních PC je v popisu."
+},
+{
+  title: "Jak vybrat herní PC — kompletní průvodce",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","výběr"],
+  seoUrl: "https://www.hellocomp.cz/jak-si-vybrat-herni-pc/",
+  seoLabel: "hellocomp.cz/jak-si-vybrat-herni-pc/",
+  hook: "Výběr herního PC je na první pohled složitý — CPU, GPU, RAM, SSD, základní deska. Ale ve skutečnosti stačí zodpovědět tři otázky. A já vám teď ukážu, jaké.",
+  body: `Otázka číslo jedna: Co budete hrát? Různé hry kladou různé nároky na hardware. Pokud hrajete hlavně esport tituly — CS2, Valorant, Fortnite — klíčová je frekvence snímků za sekundu a rychlost procesoru. Pokud hrajete AAA single player hry — Cyberpunk, Red Dead, Hogwarts Legacy — klíčová je grafická karta.
+
+Otázka číslo dvě: V jakém rozlišení chcete hrát? Full HD 1080p je dnes stále nejrozšířenější a nejdostupnější. 1440p je prémiový standard s výborným poměrem cena-výkon. 4K je pro náročné a zároveň nejtěžší na hardware a peněženku.
+
+Otázka číslo tři: Jaký je váš rozpočet? A tady platí jednoduchá rovnice — čím více investujete, tím déle vám PC vydrží bez nutnosti upgradu. Za 20 tisíc dostanete solidní Full HD herní PC, za 30 tisíc pohodlné 1440p hraní, a za 40 tisíc i výš máte prostor pro 4K nebo vysokou snímkovou frekvenci.
+
+Na webu HelloComp jsme k tématu výběru herního PC napsali kompletní průvodce — odkaz je v popisu videa. A pokud chcete poradit osobně, zavolejte nebo napište — rádi vám pomůžeme vybrat přesně to, co potřebujete.`,
+  cta: "Jaké hry hrajete nebo plánujete hrát? Napište mi do komentářů a já vám řeknu, co přesně hledat a jaký budget dává pro vás smysl."
+},
+{
+  title: "Herní PC do 15 000 Kč — jde to vůbec?",
+  priority: "p66", priorityLabel: "66 %",
+  tags: ["p66","budget"],
+  seoUrl: "https://www.hellocomp.cz/herni-pocitac-do-15-000-kc/",
+  seoLabel: "hellocomp.cz/herni-pocitac-do-15-000-kc/",
+  hook: "Patnáct tisíc na herní PC — jde to vůbec? Odpověď je ano, ale s podmínkami. A ty podmínky vám teď upřímně vysvětlím.",
+  body: `Herní PC do 15 000 Kč je na trhu nejnáročnější kategorie z pohledu výběru komponent. Tam kde za 20 tisíc máte větší prostor pro chybu, tady se každá koruna počítá.
+
+Co realisticky očekávat? AMD Ryzen 5 5600 nebo starší Intel i5 v kombinaci s grafikou Radeon RX 6600 nebo GeForce RTX 3060 — to je základ pro hraní ve Full HD na středních nastaveních. Počítejte s 16 GB DDR4 RAM a 512 GB SSD.
+
+Co naopak v tomto rozpočtu nedostanete? Vysoký framerate v nových AAA hrách na ultra nastaveních. 1440p gaming s plynulostí. A RGB belíčka po celé skříni — to je v tomto segmentu luxus.
+
+Co je ale klíčové: nekupujte herní PC do 15 000 od neznámých prodejců s pochybnou zárukou. Rozdíl mezi dobře složenou a špatně složenou sestavou za stejné peníze může být propastný.
+
+V HelloComp nabízíme repasované herní PC právě v tomto cenovém rozsahu — zánovní hardware, plně otestovaný, s certifikovanou zárukou. Odkaz najdete v popisu.`,
+  cta: "Hrajete na PC do 15 000? Napište, co hrajete a jak jste spokojeni — rád se podělím o tipy na optimalizaci výkonu."
+},
+{
+  title: "Herní PC do 40 000 Kč — prémiová kategorie",
+  priority: "p66", priorityLabel: "66 %",
+  tags: ["p66","budget"],
+  seoUrl: "https://www.hellocomp.cz/herni-pocitac-do-40-000-kc/",
+  seoLabel: "hellocomp.cz/herni-pocitac-do-40-000-kc/",
+  hook: "Čtyřicet tisíc na herní PC — to je hranice, kde přestáváte dělat kompromisy. Dneska si projdeme, co přesně za tuto částku dostanete.",
+  body: `Za 40 000 korun vstupujete do prémiové kategorie. Procesory jako Ryzen 9 7900X nebo Intel i9-13900K v kombinaci s RTX 4070 Ti nebo RX 7900 GRE vám umožní plynulé 1440p hraní s vysokým frameratem nebo 4K gaming s rozumnými nastaveními.
+
+32 GB DDR5 RAM je v tomto rozpočtu standard. 2 TB NVMe SSD je reálně dosažitelné. A navíc máte prostor na kvalitní vodní chlazení, které udrží teplotní výkon i při delším hraní nebo streamování.
+
+PC za 40 000 Kč by mělo vydržet bez upgradu klidně 6 až 8 let — samozřejmě záleží na tom, jak rychle se budou vyvíjet nároky nových her.
+
+Jedním z klíčových tipů je toto: neinvestujte všechno do GPU a šetřete na zdroji. Levný zdroj je nejčastější příčina poruch v jinak výkonných sestavách. Kvalitní modulární zdroj od Seasonic nebo be quiet! se v tomto segmentu opravdu vyplatí.
+
+Konkrétní konfigurace herních PC v tomto cenové hladině najdete na webu HelloComp — odkaz je v popisu.`,
+  cta: "Plánujete investici do PC za 40 tisíc? Napište mi, co od PC očekáváte — rád vám doporučím konkrétní konfiguraci na míru."
+},
+{
+  title: "Repasované herní PC — zlatý důl pro chytré nakupující",
+  priority: "p66", priorityLabel: "66 %",
+  tags: ["p66","budget"],
+  seoUrl: "https://www.hellocomp.cz/repasovane-herni-pc/",
+  seoLabel: "hellocomp.cz/repasovane-herni-pc/",
+  hook: "Repasovaný počítač — pro někoho sprosté slovo, pro chytré nakupující zlatý důl. Dneska vám vysvětlím, proč je repasovaný herní PC jednou z nejlepších hodnot na trhu.",
+  body: `Repasovaný herní PC je takový, který byl vrácen, použit nebo sestaven ze zánovních komponent a prošel kompletní kontrolou, testováním a čištěním. Není to bazarový kus bez záruky — nebo alespoň by neměl být, pokud ho kupujete od seriózního prodejce.
+
+Co tím získáte? Ušetříte typicky 20 až 40 procent oproti nové sestavě stejného výkonu. To znamená, že za peníze, které byste dali za nový herní PC do 20 000 Kč, dostanete repasovaný PC v hodnotě 25 až 28 tisíc — tedy o generaci výkonnější hardware.
+
+Klíčové je ale vědět, na co se zaměřit: GPU a CPU musí mít prokázanou historii bez závad. Zdroj by měl být otestovaný na plnou zátěž. A záruční podmínky musí být jasně dány — ideálně písemně.
+
+V HelloComp nabízíme repasované herní PC s plnou zárukou a dokumentací všech komponent. Každý kus prochází naším technickým testováním a dostanete přesný přehled, co v sestavě je.`,
+  cta: "Máte zkušenost s repasovaným PC? Nebo se ještě bojíte do toho jít? Napište mi — rád vaše obavy rozveji. Odkaz na aktuální nabídku je v popisu."
+},
+{
+  title: "Jak vybrat grafickou kartu — přesný framework",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","hardware","výběr"],
+  seoUrl: "https://www.hellocomp.cz/jak-si-vybrat-grafickou-kartu/",
+  seoLabel: "hellocomp.cz/jak-si-vybrat-grafickou-kartu/",
+  hook: "Grafická karta je srdce herního PC a zároveň nejčastější zdroj zákazníkových otázek. Dnes vám dám přesný framework pro výběr — bez zbytečného technického žargonu.",
+  body: `Začněme nejdůležitějším parametrem: cílové rozlišení a framerate. Pro Full HD při 60 fps stačí RX 7600 nebo RTX 4060 — obě jsou skvělé volby do 10 tisíc korun. Pro 1440p při 60 až 144 fps se posouváme na RTX 4070 nebo RX 7700 XT. Pro 4K gaming nebo vysoký framerate v náročných hrách je potřeba RTX 4080 nebo RX 7900 XTX — a to jsou komponenty za 20 tisíc a výše.
+
+Druhý klíčový faktor je VRAM — množství paměti na kartě. Nové hry stále více požadují 12 GB a více VRAM, zvláště pokud hrajete na vysokých texturách nebo v rozlišení nad 1080p. Karty s 8 GB VRAM jsou dnes na hraně budoucnosti.
+
+Třetím faktorem je ekosystém — Nvidia nabízí lepší ray tracing a DLSS technologii pro umělé zvýšení frameratu. AMD má výhodnější ceny za raw výkon a dobrou rasterizaci. Pro hráče bez specifických požadavků je AMD velmi solidní volba.
+
+Co se týká nákupu: nekupujte těžené karty bez záruky a vždy ověřte, zda váš zdroj má dostatečný wattový výkon pro danou kartu.`,
+  cta: "Na jaké hry a v jakém rozlišení hrajete? Napište mi do komentářů a já vám doporučím přesnou grafickou kartu pro váš případ."
+},
+{
+  title: "Čištění a údržba PC — krok za krokem",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","navod"],
+  seoUrl: "https://www.hellocomp.cz/cisteni-a-udrzba-pc/",
+  seoLabel: "hellocomp.cz/cisteni-a-udrzba-pc/",
+  hook: "Víte, co zabíjí jinak výkonné počítače? Prach. A přehřívání z tohoto prachu. Dnes vám ukážu, jak správně čistit a udržovat PC — krok za krokem.",
+  body: `PC by se měl čistit přibližně jednou za šest měsíců, v prašnějším prostředí každé tři měsíce. Čím déle čekáte, tím vyšší jsou teploty a tím vyšší riziko poškození komponent.
+
+Co budete potřebovat? Stlačený vzduch ve spreji — to je základ. Antistatický kartáček na jemné komponenty. A čistý hadřík na sklo a povrchy skříně.
+
+Postup je jednoduchý: odpojte počítač od proudu, otevřete skříň a použijte stlačený vzduch na ventilátory, radiátory a mezery mezi komponenty. Nezapomeňte na filtry — většina moderních skříní je má u čelního panelu a u zdroje. Ty vyjměte a vyčistěte pod tekoucí vodou.
+
+Zvláštní pozornost věnujte CPU chladiči — tam se prach akumuluje nejvíce a teploty procesoru mohou kvůli tomu narůst o 10 až 20 stupňů.
+
+Po vyčistění zkontrolujte teploty při zátěži — ideálně pomocí HWiNFO nebo MSI Afterburner. CPU by neměl přesáhnout 85 stupňů při plné zátěži a GPU taktéž.
+
+Zvažte také výměnu teplovodivé pasty na CPU — pasta stárne a po třech letech ztrácí účinnost. Výměna trvá 15 minut a může snížit teploty o 10 i více stupňů.`,
+  cta: "Kdy jste naposledy čistili svůj PC? Napište do komentářů — tipuji, že většina přizná, že déle než rok. Kompletní návod je na webu HelloComp, odkaz v popisu."
+},
+{
+  title: "Jak zapojit monitor — co se může pokazit?",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","navod"],
+  seoUrl: "https://www.hellocomp.cz/jak-zapojit-monitor/",
+  seoLabel: "hellocomp.cz/jak-zapojit-monitor/",
+  hook: "Zapojit monitor zní jako triviální věc — ale víte, jaký je rozdíl mezi HDMI a DisplayPort? A proč záleží, ke které součásti PC kabel zapojíte? Dneska to vysvětlím.",
+  body: `První a nejdůležitější pravidlo: vždy zapojte monitor do grafické karty, ne do základní desky — pokud tedy máte dedikovanou grafiku. Základní deska sice také disponuje video výstupy, ale ty jsou napojeny na integrovanou grafiku procesoru, která je dramaticky slabší.
+
+Pokud zapojíte monitor do základní desky s RTX 4070 v počítači, budete hrát na integrované grafice a ptát se, proč má PC takový výkon. Tato chyba je překvapivě velmi častá.
+
+Druhé důležité téma: HDMI versus DisplayPort. Pro hráče je DisplayPort preferovaná volba — podporuje vyšší obnovovací frekvence jako 144 Hz, 165 Hz nebo 240 Hz bez kompromisů.
+
+Starší verze HDMI 1.4 nebo 2.0 jsou omezené. Pokud máte 144Hz monitor a používáte HDMI 1.4, pravděpodobně hrajete jen na 60 Hz bez toho, aniž byste o tom věděli. Zkontrolujte specifikace kabelu i monitoru.
+
+Po zapojení ujistěte se ve Windows, že máte nastaveno nativní rozlišení monitoru a správnou obnovovací frekvenci. Nastavení → Zobrazení → Rozšířená nastavení zobrazení.`,
+  cta: "Nevíte si rady s nastavením monitoru nebo jste narazili na problém? Napište do komentářů nebo na náš web — rádi poradíme. Odkaz v popisu."
+},
+{
+  title: "První zapnutí PC — co dělat krok za krokem",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","navod"],
+  seoUrl: "https://www.hellocomp.cz/prvni-zapnuti-pc-a-odstranovani-problemu/",
+  seoLabel: "hellocomp.cz/prvni-zapnuti-pc-a-odstranovani-problemu/",
+  hook: "Dostali jste nový PC a teď nevíte, co dělat dál? Nebo se vám nový počítač ani nespustil? Nebojte — projdeme první zapnutí krok za krokem.",
+  body: `Po zapnutí nového PC vás přivítá buď rovnou Windows, nebo průvodce nastavením — záleží, zda byl operační systém předinstalován. V HelloComp dodáváme PC s předinstalovaným Windows, takže první věc, kterou uvidíte, je průvodce nastavením.
+
+Projde vás nastavením jazyka, připojením k síti a přihlášením nebo vytvořením Microsoft účtu. Doporučuji zvážit lokální účet, pokud nechcete mít data synchronizována s Microsoftem.
+
+Po přihlášení proveďte Windows Update — přejděte do Nastavení, Windows Update a nainstalujte všechny dostupné aktualizace. Poté nainstalujte ovladače grafické karty — přímo z webu Nvidia nebo AMD, ne z Windows Update. Správné ovladače jsou klíčové pro výkon ve hrách.
+
+Pokud se PC při prvním zapnutí ani nespustí: zkontrolujte, zda je kabel pevně zapojen a zda svítí indikátor napájení na zdroji. Nejčastější příčinou problémů je uvolněný RAM modul nebo nezapojený 8-pinový napájecí konektor CPU.
+
+Pokud PC pípá při startu — počet pípnutí je chybový kód. Vygooglujte kód ve formátu "BIOS beep code" spolu s výrobcem vaší základní desky.`,
+  cta: "Měli jste problém s prvním zapnutím nového PC? Napište nám — rádi pomůžeme to vyřešit. Kompletní průvodce je na HelloComp, odkaz v popisu."
+},
+{
+  title: "Výměna a instalace grafické karty — jak na to",
+  priority: "p100", priorityLabel: "100 %",
+  tags: ["p100","navod","hardware"],
+  seoUrl: "https://www.hellocomp.cz/vymena-a-instalace-graficke-karty/",
+  seoLabel: "hellocomp.cz/vymena-a-instalace-graficke-karty/",
+  hook: "Výměna grafické karty je jeden z nejjednodušších upgradů, který na PC můžete udělat — a přitom jeden z největších výkonnostních skoků. Dneska vám ukážu, jak na to.",
+  body: `Než začnete, potřebujete vědět tři věci. Za prvé, zda váš zdroj má dostatek výkonu pro novou kartu. Každá GPU má uveden TDP — spotřebu ve wattech. Přidejte k ní spotřebu zbytku systému a ujistěte se, že váš zdroj má alespoň 20 procent rezervu navíc.
+
+Za druhé, zda máte volný PCIe x16 slot na základní desce — téměř vždy ano. Za třetí, zda se karta fyzicky vejde do skříně — moderní karty jsou velké a ne každá skříň je pojme. Délka nad 300 mm je u prémiových karet běžná.
+
+Postup výměny: odpojte PC od proudu, otevřete skříň. Odstraňte starou kartu — odšroubujte ji ze záslepky a stiskněte pojistku na PCIe slotu. Vložte novou kartu — pečlivě zatlačte, dokud nezaklapne pojistka.
+
+Zapojte PCIe napájecí kabely — typicky 8+8 pin nebo 16-pin konektor u nových karet. Zavřete skříň a zapněte PC.
+
+Prvním krokem po spuštění je odinstalace starých ovladačů přes Display Driver Uninstaller a instalace nových ovladačů pro novou kartu. Nepřeskakujte tento krok — stará a nová generace ovladačů se mohou navzájem bít.`,
+  cta: "Jakou grafiku jste upgradovali nebo plánujete upgradovat? Napište do komentářů — rád poradím s kompatibilitou."
+},
+{
+  title: "Jak vybrat monitor — tři klíčové parametry",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","hardware","výběr"],
+  seoUrl: "https://www.hellocomp.cz/jak-vybrat-monitor/",
+  seoLabel: "hellocomp.cz/jak-vybrat-monitor/",
+  hook: "Monitor je věc, na kterou koukáte celý den — a přesto ho většina hráčů nakupuje jako poslední a s nejmenší pozorností. Dneska to napravíme.",
+  body: `Tři nejdůležitější parametry monitoru pro hráče jsou: panel, rozlišení a obnovovací frekvence.
+
+Začněme panelem. IPS panely nabízejí nejlepší podání barev a pozorovací úhly — ideální pro filmový zážitek a barevně přesnou práci. VA panely mají lepší kontrast a tmavé podání — dobré pro tmavé hry a filmy. TN panely jsou nejrychlejší co do odezvy, ale barvy za ostatními zaostávají — používají je profesionální esport hráči. Pro většinu hráčů je IPS nebo VA nejlepší volba.
+
+Rozlišení: Full HD 1080p je stále standard pro esport a cenově dostupné herní sestavy. 1440p je premium standard — krásný obraz, rozumná cena. 4K je pro náročné — ale potřebujete odpovídající GPU.
+
+Obnovovací frekvence: 60 Hz je naprosté minimum. 144 Hz je absolutní základ pro plynulé herní zážitky dnes. 165 Hz a 240 Hz oceníte v esport titulech, kde každá milisekunda rozhoduje.
+
+Důležité: ujistěte se, že váš PC zvládne daný framerate. 240 Hz monitor nemá smysl, pokud váš PC generuje 60 fps. Podívejte se také na odezvu — 1 ms GtG je pro gaming ideál.`,
+  cta: "Na kolika Hz a v jakém rozlišení aktuálně hrajete? Napište do komentářů — rádi vám poradíme s výběrem. Přehled monitorů na HelloComp je v popisu."
+},
+{
+  title: "Chlazení a teploty PC — co je normální a co alarmující?",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","navod","hardware"],
+  seoUrl: null, seoLabel: null,
+  hook: "Přehřátý počítač je pomalý počítač. A v nejhorším případě poškozený počítač. Dnes si vysvětlíme, jaké teploty jsou normální, jaké jsou alarmující a jak je snížit.",
+  body: `Pojďme si nejdřív říct, co je normální. CPU při běžné práci by se měl pohybovat do 60 stupňů. Při plné zátěži — například benchmarku nebo renderování — je 80 až 85 stupňů přijatelné. Pokud CPU překračuje 90 stupňů při zátěži, je čas jednat.
+
+GPU má podobné limity — do 85 stupňů při plném zatížení je norma. Nad 90 stupňů se grafická karta začíná tepelně omezovat — tzv. thermal throttling — a výkon klesá i o 20 procent.
+
+Jak teploty měřit? Stáhněte si HWiNFO64 — je zdarma a ukáže vám přesné teploty všech komponent v reálném čase. Nebo MSI Afterburner s Rivatuner pro zobrazení přímo ve hře přes overlay.
+
+Jak teploty snížit? Zaprvé — vyčistěte PC od prachu. Zadruhé — zkontrolujte airflow ve skříni. Vzduch by měl proudit dovnitř přes přední a spodní ventilátory a ven přes zadní a horní.
+
+Zatřetí — zvažte výměnu teplovodivé pasty na CPU. Pasta stárne a po třech až čtyřech letech ztrácí účinnost. Výměna trvá 15 minut a může snížit teploty o 10 i více stupňů. Dobrá pasta: Thermal Grizzly Kryonaut nebo Arctic MX-6.`,
+  cta: "Jaké teploty ukazuje váš PC pod zátěží? Napište do komentářů číslo pro CPU i GPU — rád vám řeknu, zda je to v pořádku."
+},
+{
+  title: "BIOS — jak vstoupit, co nastavit a čeho se nedotýkat",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","navod"],
+  seoUrl: null, seoLabel: null,
+  hook: "BIOS. Slovo, které zní hrozivě — ale ve skutečnosti je to jen nastavení, které každý majitel PC by měl alespoň jednou vidět. Dneska vám ukážu, jak vstoupit a co tam najdete.",
+  body: `BIOS — nebo jeho moderní verze UEFI — je firmware základní desky. Je to první program, který se spustí při zapnutí PC, ještě před Windows. Právě v BIOSu se konfiguruje hardware a bootování systému.
+
+Jak vstoupit do BIOSu? Ihned po zapnutí PC mačkejte klávesu Delete, F2 nebo F10 — záleží na výrobci základní desky. Obvykle se zobrazí nápověda přímo na obrazovce při startu.
+
+Co tam najdete? Informace o procesoru, RAM a teplotách. Nastavení Boot Order — pořadí zařízení, ze kterých se PC pokouší nabootovat. A XMP nebo EXPO profil pro RAM — to je klíčové!
+
+Pokud jste si koupili RAM 3200 MHz nebo 6000 MHz a v BIOSu nemáte aktivovaný XMP profil, vaše RAM běží jen na základní frekvenci 2133 nebo 4800 MHz. To je velký výkonnostní rozdíl za nulové náklady — stačí v BIOSu najít profil XMP nebo EXPO a zapnout ho.
+
+Co v BIOSu naopak neměnit, pokud nevíte přesně co děláte: napětí CPU, hodnoty taktování a nastavení zabezpečení bootování. Špatná nastavení mohou způsobit, že se PC nepůjde spustit a budete muset resetovat BIOS přes jumper na základní desce.`,
+  cta: "Máte v BIOSu aktivovaný XMP nebo EXPO profil pro RAM? Napište ano nebo ne do komentářů — tipuji, že polovina z vás ne."
+},
+{
+  title: "Jak zrychlit PC — 5 konkrétních kroků",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","navod"],
+  seoUrl: null, seoLabel: null,
+  hook: "PC se zpomaluje časem — to je realita. Ale ve většině případů není potřeba kupovat nový hardware. Stačí vědět, co vyladit. Dám vám pět konkrétních kroků.",
+  body: `Krok číslo jedna: odinstalujte nepotřebné programy. Přejděte do Nastavení, Aplikace a projděte seznam. Překvapí vás, kolik programů se spouští automaticky a spotřebovává RAM a CPU, aniž byste o tom věděli.
+
+Krok číslo dvě: zakažte programy při startu. Stiskněte Ctrl+Shift+Esc, přejděte na záložku Spuštění a zakažte vše, co nepotřebujete ihned po zapnutí — Spotify, Discord, Adobe updater. Každý ušetřený startup program zrychlí boot o sekundy.
+
+Krok číslo tři: zkontrolujte volné místo na disku. SSD potřebuje alespoň 10 až 15 procent volného místa k efektivnímu fungování. Pokud máte disk plný, výrazně to zpomaluje systém.
+
+Krok číslo čtyři: proveďte Windows Update a aktualizujte ovladače. Zastaralé ovladače — zvláště grafické — mohou způsobovat pády, zaseknutí a pomalý výkon.
+
+Krok číslo pět: zkontrolujte stav disku pomocí nástroje CrystalDiskInfo — ten je zdarma a ukáže vám, zda váš SSD nebo HDD není na pokraji selhání. Poškozený disk je nejčastější příčinou dramatického zpomalení PC a mnohdy ho snadno zaměníme za software problém.`,
+  cta: "Vyzkoušejte dnes CrystalDiskInfo a napište do komentářů, jaké skóre máte na disku. Uvidíme, kdo má opravdu zdravý hardware."
+},
+{
+  title: "Jak vybrat procesor — CPU pro hráče i tvůrce",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","hardware","výběr"],
+  seoUrl: null, seoLabel: null,
+  hook: "Procesor nebo grafická karta — co je pro hraní důležitější? A jak vybrat CPU, který nebrzdí zbytek sestavy? Dneska to vysvětlím jasně a konkrétně.",
+  body: `Začněme základní pravdou: pro čistě herní sestavu je grafická karta důležitější než procesor. GPU zpracovává vizuální výpočty a přímo ovlivňuje framerate. CPU ale nesmí brzdět GPU — a to je klíčový pojem: bottleneck.
+
+Bottleneck nastane, když procesor nestíhá zásobovat grafickou kartu daty. Výsledkem je, že GPU běží jen na 60 nebo 70 procentech kapacity. Proto je výběr CPU vždy relativní k GPU — musí si sedět.
+
+Jaká je dnes dobrá volba? Pro střednědobé herní sestavy je AMD Ryzen 5 7600 nebo 7600X skvělý výběr — šest jader, vysoké takty, moderní platforma AM5 s výhledem minimálně do roku 2027. Intel Core i5-13400F nebo i5-14400F jsou konkurenceschopné alternativy za podobnou cenu.
+
+Pro výkonnější sestavy: Ryzen 7 7700X nebo Intel i7-14700KF.
+
+Co sledovat při výběru CPU? Počet jader — pro hry stačí 6 jader, pro multitasking, streaming a tvorbu obsahu je lepší 8 a více. Frekvence jádra — čím vyšší, tím lépe pro hry. Cache — velká L3 cache pomáhá u her citlivých na latenci. Platforma — ujistěte se, že CPU pasuje do základní desky s odpovídajícím soketem.`,
+  cta: "Jaký máte procesor a s čím ho párujete? Napište do komentářů — rád zhodnotím, zda je kombinace optimální nebo zda máte bottleneck."
+},
+{
+  title: "Upgrade PC — jak zvýšit výkon bez nové sestavy",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","hardware","navod"],
+  seoUrl: null, seoLabel: null,
+  hook: "Máte pocit, že váš PC začíná zaostávat, ale nechcete kupovat celou novou sestavu? Dobrá zpráva — ve většině případů stačí jeden nebo dva upgrady. Dneska si povíme, co přesně.",
+  body: `Nejdůležitějším upgradem pro většinu starších PC je přidání RAM nebo upgrade na rychlejší RAM. Pokud máte méně než 16 GB, doplnění na 16 nebo 32 GB může výrazně zrychlit multitasking a moderní hry. Pokud máte pomalou DDR4 2400 MHz, upgrade na 3200 nebo 3600 MHz je znatelný bez nutnosti měnit cokoliv jiného.
+
+Druhý nejdůležitější upgrade závisí na vašem hardware. Pokud máte starý HDD jako systémový disk, nahrazení za NVMe SSD je dramatická změna — Windows se nabootuje za 10 sekund místo 90. Pocit z PC se zlepší víc než po výměně GPU.
+
+Pokud váš systémový disk je SSD, ale GPU je starší než 4 roky, upgrade grafické karty je nejefektivnější herní upgrade.
+
+Třetím typem upgradu, který se vyplatí, je výměna CPU chladiče. Pokud máte originální Intel nebo AMD boxový chladič, jeho výměna za tower chladič jako Noctua NH-U12S nebo be quiet! Pure Rock 2 sníží teploty o 15 až 20 stupňů a procesor se přestane tepelně omezovat.
+
+Pozor na kompatibilitu: RAM musí odpovídat standardu vaší základní desky. GPU potřebuje dostatečný zdroj. CPU upgrade musí být kompatibilní se soketem základní desky.`,
+  cta: "Co u vás jako první potřebuje upgrade — RAM, SSD, GPU nebo CPU chladič? Napište do komentářů a rád doporučím konkrétní produkt."
+},
+{
+  title: "RGB a design PC — jak to udělat správně",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","lifestyle"],
+  seoUrl: null, seoLabel: null,
+  hook: "RGB — milujete ho nebo nenávidíte. Ať tak nebo tak, svítící počítač se stal fenoménem. Dneska vám ukážu, jak udělat herní setup opravdu efektní — a co přitom nezanedbat.",
+  body: `Začněme tím nejdůležitějším: RGB neovlivňuje výkon počítače. Absolutně nijak. Je to čistě estetická záležitost. A pokud vám světla vadí, není žádný problém koupit výkonné komponenty bez RGB — výrobci jako Noctua nebo be quiet! staví na designovém minimalismu.
+
+Ale pokud RGB chcete, tady je, jak na to správně.
+
+Za prvé — ekosystém. Různí výrobci mají různé software pro ovládání RGB: ASUS má Aura Sync, MSI má Mystic Light, Gigabyte má RGB Fusion. Pokud chcete mít vše synchronizované pod jednou aplikací, vybírejte komponenty od stejného výrobce nebo použijte OpenRGB — open-source nástroj kompatibilní s většinou RGB hardwaru.
+
+Za druhé — viditelnost. RGB má smysl jen pokud máte skříň se skleněným bočním panelem. Skříně jako Lian Li PC-O11, Phanteks Eclipse P500A nebo NZXT H510 Flow nabízejí vynikající viditelnost komponent a jsou designovými ikonami.
+
+Za třetí — kabelový management. Krásně nasvícený PC s chaosem kabelů nevypadá dobře. Věnujte čas vedení kabelů za základní deskou a použijte svorky nebo kabelové kanály.`,
+  cta: "Máte RGB setup? Pošlete fotku do komentářů nebo na náš Instagram — rádi ho přesdílíme! Inspiraci na herní setupy najdete na blogu HelloComp."
+},
+{
+  title: "Cloudové hraní — budoucnost nebo jen hype?",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","lifestyle"],
+  seoUrl: "https://www.hellocomp.cz/cloudove-hrani-budoucnost/",
+  seoLabel: "hellocomp.cz/cloudove-hrani-budoucnost/",
+  hook: "Co kdybych vám řekl, že můžete hrát Cyberpunk 2077 v ultra nastaveních na starém notebooku za pět tisíc? Cloudové hraní to umožňuje — ale jsou tu podmínky, o kterých se moc nemluví.",
+  body: `Cloudové hraní funguje na principu streamování — hra běží na serverech poskytovatele a vy vidíte jen obrazový přenos, podobně jako Netflix. Vaše klávesnice a myš odesílají vstupy, server je zpracuje a pošle vám obraz zpět.
+
+Největší hráči na tomto trhu jsou GeForce Now od Nvidie a Xbox Cloud Gaming od Microsoftu, který je součástí Game Passu.
+
+Co jsou výhody? Nepotřebujete silný hardware — stačí slušné internetové připojení. Hry se okamžitě aktualizují a není třeba nic stahovat. Můžete hrát na tabletu, telefonu nebo starém PC.
+
+Co jsou nevýhody? Latence. Input lag — prodleva mezi stiskem klávesy a reakcí ve hře — je v cloudu vždy vyšší než na lokálním hardwaru. Pro esport tituly jako CS2 nebo Valorant je to diskvalifikující. Pro single player hry to většina hráčů tolerance pojme.
+
+A cena: GeForce Now Ultimate vyjde na přibližně 20 dolarů měsíčně. Za rok je to 240 dolarů — za co byste koupili slušnou grafickou kartu. Cloudové hraní je skvělé jako doplněk, ale jako náhrada za vlastní PC má pro aktivní hráče jasné limity.`,
+  cta: "Vyzkoušeli jste cloudové hraní? Napište svůj názor do komentářů — jste pro nebo proti? Článek na HelloComp je v popisu."
+},
+{
+  title: "VR Gaming v roce 2025 — stojí to za to?",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","lifestyle"],
+  seoUrl: "https://www.hellocomp.cz/vr-gaming/",
+  seoLabel: "hellocomp.cz/vr-gaming/",
+  hook: "VR gaming existuje přes deset let — a přesto to stále vypadá jako technologie budoucnosti. Proč? A co dnes VR nabízí reálně? Dám vám upřímný přehled.",
+  body: `Virtuální realita v hraní nabízí zážitek, který nic jiného nedokáže replikovat — prostorový pocit přítomnosti ve hře. Když ve VR vystoupíte na okraj propasti, instinktivně se zachytíte. Srdce tluče rychleji. To je síla VR.
+
+Aktuálně nejdostupnějším vstupem do VR je Meta Quest 3 — standalone headset, který nevyžaduje PC, ale lze ho k PC připojit pro výkonnější zážitek přes Quest Link nebo Air Link.
+
+Pokud máte výkonné PC s RTX 4070 nebo výš, Valve Index nebo Sony PlayStation VR2 s adaptérem pro PC jsou prémiovými volbami s nejlepší kvalitou obrazu.
+
+Co potřebujete pro PC VR? Minimálně RTX 3070 nebo RX 6700 XT, procesor i5 nebo Ryzen 5 aktuální generace, 16 GB RAM a USB 3.0 port. A prostor — ideálně alespoň 2 x 2 metry volné plochy.
+
+Jaké hry stojí za to? Half-Life: Alyx je stále technologicky i herně špičková ukázka VR. Beat Saber je nejpřístupnější. Boneworks a Bonelab pro náročné hráče akce.
+
+Nevýhody: cena headsetů, fyzická náročnost a omezená herní knihovna oproti klasickým hrám.`,
+  cta: "Máte VR headset nebo přemýšlíte o koupi? Napište do komentářů — rád zodpovím otázky. Přehled VR a požadavků na PC je na HelloComp."
+},
+{
+  title: "Vodní vs vzduchové chlazení — co je skutečně lepší?",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","hardware"],
+  seoUrl: null, seoLabel: null,
+  hook: "Vodní chlazení vypadá impozantně — ale je opravdu lepší než vzduchové? Odpověď vás může překvapit. Dneska srovnáme obě kategorie objektivně.",
+  body: `Vzduchové chlazení je prověřená, spolehlivá a cenově dostupná technologie. Tower cooler jako Noctua NH-D15 nebo be quiet! Dark Rock Pro 4 dokáže ochladit i výkonné procesory třídy Ryzen 9 nebo i9 stejně efektivně jako průměrné vodní chlazení — a to bez jediného pohyblivého dílu kromě ventilátorů.
+
+Pokud ventilátor na tower cooleru selže, jednoduše ho vyměníte za pár stovek. Životnost dobrého tower cooleru je 10 a více let bez jakéhokoliv problému.
+
+Vodní chlazení — konkrétně AIO uzavřené smyčky — nabízí určité výhody. Pumpa a radiátor jsou odděleně od CPU, takže nad procesorem není masivní věž blokující RAM nebo boční panel. U 360mm radiátoru dostanete o 5 až 10 stupňů nižší teploty než u srovnatelného tower cooleru.
+
+Ale: AIO má více bodů selhání. Pumpa může selhat. Hadičky mohou prasknout nebo postupně degradovat. Průměrná životnost AIO je 5 až 7 let.
+
+Pro základ a střední segment doporučuji kvalitní tower cooler. Pro high-end sestavy s overclockingem nebo v případě, že záleží na vizuálním dojmu, dává AIO smysl.`,
+  cta: "Co používáte — vzduch nebo vodu? A máte s tím dobrou nebo špatnou zkušenost? Napište do komentářů — zajímá mě to."
+},
+{
+  title: "Bottleneck — co to je a jak mu předejít",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","hardware","navod"],
+  seoUrl: null, seoLabel: null,
+  hook: "Bottleneck — tohle slovo straší každého, kdo skládá nebo plánuje PC. Ale co to vlastně znamená? A jak zjistíte, zda ho máte? Rozebereme to bez zbytečných keců.",
+  body: `Bottleneck doslova znamená hrdlo láhve — komponenta, která brzdí zbytek systému. V PC kontextu nejčastěji hovoříme o bottlenecku CPU-GPU. Nastane, když procesor nestíhá zásobovat grafickou kartu daty. GPU pak čeká a běží jen na 60 nebo 70 procentech výkonu.
+
+Jak bottleneck poznat? Monitorujte využití CPU a GPU při hře pomocí HWiNFO nebo MSI Afterburner s Rivatuner overlay. Pokud GPU běží na méně než 90 procentech a CPU je na 100 procentech, máte CPU bottleneck. Pokud je GPU na 99 procentech a CPU na 40 procentech, je to správný stav.
+
+Nejčastější případ: starý čtyřjádrový Intel i5 ze sedmé nebo osmé generace spárovaný s novou RTX 4070. Tato kombinace může způsobit, že RTX 4070 pracuje jako RTX 4060 — plýtvání výkonem a penězi.
+
+V jakém rozlišení hrajete je také klíčové. Ve vyšším rozlišení je GPU vytíženější a bottleneck CPU je méně znatelný. V 1080p esportu je CPU bottleneck naopak velmi viditelný.
+
+Jak bottleneck řešit? Upgrade CPU na modernější generaci, nebo výběr GPU, která lépe odpovídá vašemu procesoru. Pravidlo: nesparujte nový top-tier GPU se starým low-end CPU.`,
+  cta: "Napište do komentářů, jaký CPU a GPU máte — rád vám řeknu, zda máte bottleneck nebo ne. Je to zdarma a rychlé."
+},
+{
+  title: "Jak vybrat RAM — DDR4 vs DDR5, kapacita, frekvence",
+  priority: "p25", priorityLabel: "25 %",
+  tags: ["p25","hardware","výběr"],
+  seoUrl: null, seoLabel: null,
+  hook: "RAM — operační paměť — je jedna z nejčastěji podceňovaných komponent. Přitom výběr špatné RAM může výrazně omezit výkon celé sestavy. Dneska vám ukážu, na co se zaměřit.",
+  body: `Nejprve: DDR4 nebo DDR5? Pokud stavíte nový PC na platformě AMD AM5 nebo Intel Alder Lake a novější, DDR5 je moderní standard. Pokud máte starší platformu — AMD AM4 nebo Intel 10. nebo 11. generace — jste na DDR4. Tyto dva standardy nejsou vzájemně kompatibilní.
+
+Kapacita: pro dnešní hraní je 16 GB minimální standard. 32 GB je doporučená hodnota, zvláště pokud zároveň streamujete nebo používáte PC na tvorbu obsahu. 64 GB a více je pro profesionální pracovní stanice.
+
+Frekvence: pro AMD Ryzen procesory je klíčový Infinity Fabric. Ryzen procesory výkonnostně profitují z frekvencí 6000 MHz DDR5 nebo 3600 MHz DDR4. Intel je obecně méně citlivý na frekvenci RAM, ale rychlejší RAM stále pomáhá.
+
+Konfigurace: dvě paměti ve dual-channel konfiguraci jsou vždy lepší než jedna paměť stejné kapacity. Čtyři sloty na základní desce, dvě obsazené? Vložte je do slotů 2 a 4 — záleží na manuálu základní desky, ale to je nejčastější doporučení.
+
+A nezapomeňte aktivovat XMP nebo EXPO profil v BIOSu — jinak RAM běží na základní frekvenci bez ohledu na to, za co jste zaplatili.`,
+  cta: "Jakou RAM máte a na jakém profilu ji provozujete? Napište do komentářů — tipuji, že XMP nemá každý zapnutý."
+},
+{
+  title: "Jak vybrat zdroj PC — proč na něm záleží víc než si myslíte",
+  priority: "p25", priorityLabel: "25 %",
+  tags: ["p25","hardware","výběr"],
+  seoUrl: null, seoLabel: null,
+  hook: "Zdroj je nejméně sexy součást herního PC. Nikdo si ho nefotí, nikdo se jím nechlubí. A přitom je to komponenta, která může zničit celý zbytek sestavy. Vysvětlím vám proč.",
+  body: `Zdroj PC, anglicky PSU, převádí střídavé napětí ze zásuvky na stejnosměrné napětí pro komponenty. A právě kvalita tohoto převodu rozhoduje o stabilitě a životnosti vašeho hardware.
+
+Levné zdroje mají nestabilní výstupní napětí — to způsobuje náhodné pády systému, nestabilitu při přetaktování a v nejhorším případě poškození komponent při výpadku napájení.
+
+Co hledat při výběru zdroje? Zaprvé — certifikace 80 Plus. Bronzová je minimum. Zlatá je standard pro herní sestavy. Platinová a Titanová jsou pro maximální efektivitu. Čím vyšší certifikace, tím méně energie se mění v teplo.
+
+Zadruhé — wattový výkon s rezervou. Spočítejte TDP všech komponent a přidejte 20 až 30 procent. Moderní GPU třídy RTX 4080 spotřebovává 320 wattů samotná. Kompletní sestava s takovým GPU potřebuje alespoň 850W zdroj.
+
+Zatřetí — modulárnost. Modulární nebo semi-modulární zdroje mají odnímatelné kabely — výsledkem je čistší kabelový management ve skříni.
+
+Doporučené značky: Seasonic, be quiet!, Corsair, ASUS ROG Thor. Vyhýbejte se neznámým značkám bez recenzí.`,
+  cta: "Víte, kolik wattů má váš zdroj a od jaké značky je? Napište do komentářů — rád zhodnotím, zda je to dostatečné pro vaši sestavu."
+},
+{
+  title: "Grafické karty Nvidia RTX 50 série — co přinášejí?",
+  priority: "p66", priorityLabel: "66 %",
+  tags: ["p66","hardware"],
+  seoUrl: "https://www.hellocomp.cz/graficke-karty-nvidia-geforce-rtx-50-series/",
+  seoLabel: "hellocomp.cz/graficke-karty-nvidia-rtx-50-series/",
+  hook: "Nvidia RTX 50 série je tady — a přináší technologie, které ještě před dvěma lety existovaly jen v laboratořích. Dneska si projdeme, co je nového a zda se vyplatí upgradovat.",
+  body: `RTX 50 série s kódovým označením Blackwell přináší několik klíčových novinek oproti předchozí generaci RTX 40.
+
+Největší je DLSS 4 s Multi Frame Generation. Zatímco DLSS 3 umělo generovat jeden syntetický snímek mezi dvěma reálnými, DLSS 4 generuje až tři syntetické snímky. Výsledkem je dramaticky vyšší číslo frameratu — ale probíhá diskuze o tom, jak moc je takový syntetický framerate reálný co do herního pocitu a latence.
+
+Druhá novinka je Neural Rendering — Nvidia integruje AI přímo do renderovacího pipeline. To umožňuje modely s nižším počtem polygonů doplnit o AI-generované detaily v reálném čase, čímž se sníží nároky na GPU při zachování vysoké vizuální kvality.
+
+Vlajková loď RTX 5090 má 32 GB GDDR7 VRAM a TDP přes 600 wattů. To není herní karta pro běžného uživatele — to je pracovní nástroj pro AI vývojáře a 3D profesionály.
+
+Pro hráče jsou zajímavější RTX 5070 Ti a RTX 5070 — ty přinášejí výkon srovnatelný s předchozí generací flagshipů za rozumnější cenu.
+
+Zda upgradovat z RTX 40 na RTX 50? Pokud máte RTX 4070 nebo výš — pravděpodobně ne. Pokud máte RTX 3070 nebo starší — RTX 5070 je zajímavá volba.`,
+  cta: "Chystáte se upgradovat na RTX 50 sérii? Nebo počkáte? Napište do komentářů svůj plán. Aktuální nabídku RTX karet najdete na HelloComp."
+},
+{
+  title: "Výkup elektroniky — jak zpeněžit starý hardware",
+  priority: "p66", priorityLabel: "66 %",
+  tags: ["p66","lifestyle"],
+  seoUrl: "https://www.hellocomp.cz/vykup-elektroniky-a-it/",
+  seoLabel: "hellocomp.cz/vykup-elektroniky-a-it/",
+  hook: "Leží vám doma staré PC, notebook nebo komponenty, které nepoužíváte? Víte, že za ně můžete dostat slušné peníze — aniž byste museli řešit prodej na bazaru?",
+  body: `Výkup elektroniky je jednoduchý proces — přivezete nebo pošlete hardware, my ho oceníme a dostanete peníze. Bez inzerátů, bez čekání na kupce, bez rizika, že vás nový majitel podvede.
+
+Co vykupujeme? Herní PC, notebooky, komponenty — procesory, grafické karty, RAM, SSD. Ale také staré telefony, tablety a kancelářské PC.
+
+Jak probíhá ocenění? Přijdete nebo nám napíšete s popisem stavu zařízení. My vám dáme nezávaznou nabídku — a vy se rozhodnete, zda ji přijmete. Celý proces je transparentní a bez závazků.
+
+Co ovlivňuje výkupní cenu? Stav hardware — funkčnost, vizuální opotřebení a věk komponent. Aktuální tržní hodnota — ceny použitého hardware se mění. Kompletnost — PC s originálními kabely a krabicemi dostane lépe.
+
+Proč prodávat přes výkup a ne na bazaru? Bazar je časově náročný. Musíte fotit, popisovat, dohadovat se s kupci, řešit dopravu a riziko podvodu. U nás máte jistotu a rychlost.
+
+Pokud plánujete koupit nový PC a chcete zpeněžit ten starý, výkup je elegantní řešení — dostanete peníze na nový hardware a zbavíte se starého bez starostí.`,
+  cta: "Máte doma nevyužitý hardware? Napište nám nebo přijďte — rádi vám dáme nezávaznou nabídku. Odkaz na výkup je v popisu videa."
+},
+{
+  title: "Herní notebook nebo stolní PC — jak se rozhodnout?",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","výběr","lifestyle"],
+  seoUrl: null, seoLabel: null,
+  hook: "Herní notebook nebo stolní herní PC? Tato otázka nemá jednu správnou odpověď — záleží na vašem životním stylu. Dneska vám pomůžu se rozhodnout.",
+  body: `Začneme stolním PC — jeho výhody jsou jasné. Za stejnou cenu dostanete výrazně vyšší výkon. Chlazení je lepší — větší skříň, větší ventilátory, nižší teploty. Upgradovatelnost — za tři roky vyměníte GPU za aktuální generaci.
+
+Životnost stolního PC je typicky 5 až 8 let před nutností výraznějšího upgradu. Nevýhoda? Je přibytý na jednom místě. Potřebujete prostor na stole, napájení ze zásuvky a monitor navíc.
+
+Herní notebook je naopak mobilní — vezmete ho k přátelům, na brigádu, do školy nebo na cesty. Má vestavěný displej, klávesnici a baterii.
+
+Nevýhody notebooku: za stejný výkon zaplatíte přibližně o 30 až 50 procent více. Tepelné limity jsou přísné — notebook musí chladit výkonné GPU ve velmi úzkém prostoru a thermal throttling je běžnější. Upgradovatelnost je minimální — GPU je zaletovaná na základní desce. A baterie vydrží při hraní typicky 1 až 2 hodiny — herní notebooky jsou v zásadě napájené ze sítě.
+
+Pro koho je herní notebook? Pro studenty a lidi, kteří hodně cestují. Pro koho stolní PC? Pro každého, kdo hledá maximální výkon za peníze a nemá potřebu počítač přenášet.`,
+  cta: "Jste notebook nebo stolní PC hráči? A proč jste si vybrali právě to? Napište do komentářů — zajímavá diskuze zaručena."
+},
+{
+  title: "Jak vybrat herní klávesnici — mechanické vs membránové",
+  priority: "p50", priorityLabel: "50 %",
+  tags: ["p50","hardware","výběr"],
+  seoUrl: null, seoLabel: null,
+  hook: "Herní klávesnice — je to marketing nebo skutečný rozdíl? Dneska vám řeknu, co u klávesnice skutečně záleží a co je jen zbytečný příplatek.",
+  body: `Klíčový rozdíl mezi herní a kancelářskou klávesnicí je v přepínačích — mechanismu, který registruje stisk klávesy. Kancelářské klávesnice obvykle používají membránové přepínače — gumová membrána s jednoduchým kontaktem. Herní klávesnice používají mechanické nebo optické přepínače.
+
+Mechanické přepínače jsou charakteristické hmatovou nebo zvukovou zpětnou vazbou. Nejznámější jsou Cherry MX switches — Red pro rychlé lineární stisky bez zpětné vazby, oblíbené u FPS hráčů. Brown pro taktilní zpětnou vazbu bez klikání, ideální pro smíšené použití. Blue pro výrazné klikání — pro ty, kdo si potrpí na zvuk, ale pro okolí méně příjemné.
+
+Optické přepínače registrují stisk světelným paprskem — jsou rychlejší a odolnější než mechanické. Popularizovaly je Razer a SteelSeries.
+
+Co ještě hledat? Anti-ghosting a N-Key Rollover — technologie zajišťující, že každý stisk každé klávesy je registrován, i pokud mačkáte více kláves najednou. To je kritické v herních situacích.
+
+Velikost: fullsize, TKL bez numerické části, nebo 60% a menší. Menší klávesnice dávají více prostoru pro myš — důležité u nízké citlivosti v FPS hrách.
+
+Zda je RGB potřebné? Absolutně ne. Světla jsou čistě estetická.`,
+  cta: "Jakou klávesnici používáte a jste s ní spokojeni? Napište do komentářů — rádi se podělím o konkrétní doporučení pro váš styl hraní."
+}
+];
+
+let activeFilter = 'all';
+
+function renderCards() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  scripts.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.dataset.tags = s.tags.join(' ');
+    el.dataset.title = s.title.toLowerCase();
+    const seoHtml = s.seoUrl
+      ? `<div class="seo-url">🔗 SEO URL: <a href="${s.seoUrl}" target="_blank">${s.seoLabel}</a></div>`
+      : `<div class="seo-url" style="color:var(--muted);border-color:var(--border);">📝 URL bude nasazena (viz SEO plán)</div>`;
+    el.innerHTML = `
+      <div class="card-header" onclick="toggle(this)">
+        <span class="priority ${s.priority}">${s.priorityLabel}</span>
+        <span class="card-title">${s.title}</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="card-body">
+        ${seoHtml}
+        <div>
+          <div class="hook-label">🎣 HOOK</div>
+          <div class="hook">${s.hook}</div>
+        </div>
+        <div class="body-text">${s.body.trim()}</div>
+        <div>
+          <div class="cta-label">📣 CALL TO ACTION</div>
+          <div class="cta-block">${s.cta}</div>
+        </div>
+        <div class="card-footer">
+          <span class="char-count" id="cc${i}"></span>
+          <button class="copy-btn" onclick="copyScript(this,${i})">📋 Kopírovat scénář</button>
+        </div>
+      </div>`;
+    grid.appendChild(el);
+  });
+  updateCount();
+}
+
+function toggle(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.chevron');
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+  if (body.classList.contains('open')) {
+    const idx = [...document.querySelectorAll('.card-header')].indexOf(header);
+    const s = scripts[idx];
+    const full = `${s.hook}\n\n${s.body.trim()}\n\n${s.cta}`;
+    document.getElementById('cc'+idx).textContent = full.length + ' znaků';
+  }
+}
+
+function copyScript(btn, i) {
+  const s = scripts[i];
+  const full = `${s.title}\n\nHOOK:\n${s.hook}\n\n${s.body.trim()}\n\nCTA:\n${s.cta}`;
+  navigator.clipboard.writeText(full.trim()).then(() => {
+    btn.textContent = '✅ Zkopírováno!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Kopírovat scénář'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  filterCards();
+}
+
+function filterCards() {
+  const q = document.querySelector('.search').value.toLowerCase();
+  let vis = 0;
+  document.querySelectorAll('.card').forEach(c => {
+    const matchFilter = activeFilter === 'all' || c.dataset.tags.includes(activeFilter);
+    const matchSearch = !q || c.dataset.title.includes(q);
+    const show = matchFilter && matchSearch;
+    c.classList.toggle('hidden', !show);
+    if (show) vis++;
+  });
+  document.getElementById('count').textContent = vis + ' scénářů';
+}
+
+function updateCount() {
+  document.getElementById('count').textContent = scripts.length + ' scénářů';
+}
+
+renderCards();
+</script>
+</body>
+</html>
