@@ -15,7 +15,7 @@ Tento dokument shrnuje, co bylo vytvořeno, jak to otevřít, jak propojit člá
   ```
 
 - GitHub Pages: (pokud je repozitář publikovaný) https://tomasberka.github.io/hellocomp-prezentace/
-- Heslo pro interní obsah (in-site gate): `prezentace` — viz `assets/auth.js`.
+- Heslo pro interní obsah (in-site gate): `prezentace+` — viz `assets/auth.js`.
 
 ## Co je v balíku (klíčové soubory)
 - `index.html` — vstup do prezentace.
