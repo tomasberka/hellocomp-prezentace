@@ -164,4 +164,52 @@ gh secret set CLOUDFLARE_PAGES_PROJECT_NAME --body "hellocomp-prezentace" -R tom
 - Bezpečnostní doporučení: místo zasílání tokenu přes chat doporučuji, abyste token vytvořil(a) a vložil(a) ho přímo do GitHub repo secrets podle instrukcí výše; já pak mohu workflow spustit a sledovat nasazení.
 
 ---
+ 
+## Vercel — rychlé nasazení (nově přidané)
+
+Tato sekce popisuje, jak nasadit prezentaci na Vercel. Máte dvě hlavní možnosti: připojit repozitář přes Vercel UI (doporučeno) nebo automatizovat nasazení přes GitHub Actions (nový workflow).
+
+A) Nasazení přes Vercel UI (doporučeno)
+1. Přihlaste se do Vercel: https://vercel.com
+2. New Project → Import Git Repository → vyberte `tomasberka/hellocomp-prezentace`.
+3. Build & Output Settings:
+   - Framework: Other / None
+   - Build command: ponechat prázdné (statická HTML)
+   - Output Directory: `HelloComp_PREZENTACE`
+4. Dokončete import a klikněte Deploy. Vercel vytvoří preview deployy pro PR a produkční URL `https://<project>.vercel.app`.
+
+B) Automatické nasazení přes GitHub Actions (workflow)
+1. V repozitáři přidejte GitHub secret `VERCEL_TOKEN` (Vercel personal token):
+   - Vercel Dashboard → Settings → Tokens → Create Token → zkopírujte hodnotu.
+   - GitHub UI: Repo → Settings → Secrets & variables → Actions → New repository secret → `VERCEL_TOKEN`.
+   - Nebo pomocí GH CLI:
+     ```bash
+     gh secret set VERCEL_TOKEN --body "<váš_token>" -R tomasberka/hellocomp-prezentace
+     ```
+2. (Volitelně) Pokud chcete explicitně zadat projekt/org, přidejte také `VERCEL_ORG_ID` a `VERCEL_PROJECT_ID` jako secrets.
+3. Workflow `deploy-vercel.yml` v `.github/workflows/` je připraven: spouští se na push do `main` nebo ručně (Run workflow). Při běhu použije `npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }}`.
+4. Po úspěšném běhu otevřete GitHub Actions logy nebo Vercel dashboard a zjistěte URL nasazení.
+
+C) Lokální deploy (rychlé testování)
+- Spusťte (Unix):
+  ```bash
+  export VERCEL_TOKEN="<váš_token>"
+  ./scripts/deploy_vercel.sh
+  ```
+- Nebo v PowerShell:
+  ```powershell
+  $env:VERCEL_TOKEN = "<váš_token>"
+  .\scripts\deploy_vercel.ps1
+  ```
+
+D) Poznámky a doporučení
+- Doporučuji nejprve připojit repozitář přes Vercel UI a ověřit, že Output Directory `HelloComp_PREZENTACE` je správné. Po ověření můžete přidat GitHub secret `VERCEL_TOKEN` a použít workflow pro automatické nasazení.
+- Pokud workflow selže, otevřete GitHub Actions → vyberte běh → zkontrolujte krok `Deploy to Vercel` (logy obsahují chyby CLI).
+
+---
+
+Pokud chcete, abych nasazení dokončil za Vás (vytvořil projekt v Vercel UI a spustil první deploy), mohu to udělat za předpokladu, že:
+1. poskytnete mi jednorázový Vercel token (raději jako GitHub secret) nebo
+2. dáte přístup přes Vercel UI (pozvánka na Váš tým/projekt).
+Bez Vercel tokenu nemohu spustit automatické nasazení z mého konce.
 

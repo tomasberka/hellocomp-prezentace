@@ -1,0 +1,35 @@
+name: Deploy to Vercel
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+      - name: Install deps (if any)
+        run: npm ci --if-present
+      - name: Deploy to Vercel via CLI
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "${VERCEL_TOKEN}" ]; then
+            echo "VERCEL_TOKEN secret is not set. Aborting."
+            exit 1
+          fi
+          # If project is already linked in Vercel, this will perform production deploy.
+          # If you set VERCEL_PROJECT_ID / VERCEL_ORG_ID as secrets, the CLI may use them when linking.
+          npx vercel --prod --token "${VERCEL_TOKEN}" --confirm || { echo "Vercel CLI deploy failed"; exit 1; }
+      - name: Output deployed URL
+        run: |
+          echo "Deployment finished. Check Vercel dashboard or Actions log for URL."
