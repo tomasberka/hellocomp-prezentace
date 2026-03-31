@@ -75,4 +75,37 @@ Příklad JSON‑LD pro video (vložit do `<head>` článku):
   "uploadDate": "2026-03-31",
   "duration": "PT2M34S",
   "contentUrl": "https://example.com/videos/video.mp4",
-  "embedUrl": "https://www.youtube.com/embed/...",
+  "embedUrl": "https://www.youtube.com/embed/..."
+}
+```
+
+## Cloudflare preview (Cloudflare Pages)
+
+Možnosti nasazení/preview přes Cloudflare:
+
+- Variant A — rychlé připojení přes Cloudflare Pages (doporučené):
+  1. V Cloudflare dashboardu otevřete **Pages** → **Create a project**.
+  2. Připojte GitHub (pokud ještě není) a vyberte repozitář `tomasberka/hellocomp-prezentace`.
+  3. Build settings: Framework = None, Build command = (ponechat prázdné), Output directory = `HelloComp_PREZENTACE`.
+  4. Vytvořte projekt; Cloudflare vytvoří `*.pages.dev` doménu a každé pushnutí spustí nasazení a náhledy.
+
+- Variant B — nasazení přes GitHub Actions (workflow je v repozitáři):
+  1. V repozitáři jděte do **Settings → Secrets → Actions** a přidejte tyto secrets:
+     - `CLOUDFLARE_API_TOKEN` — API token s právy na Pages (Pages: Edit / Read as needed).
+     - `CLOUDFLARE_ACCOUNT_ID` — najdete v Cloudflare dashboardu (Account → Overview).
+     - `CLOUDFLARE_PAGES_PROJECT_NAME` — název Pages projektu (např. `hellocomp-prezentace`).
+  2. Workflow `deploy-cloudflare-pages.yml` v `.github/workflows/` je připraven: po pushi do `main` nebo manuálním spuštění (workflow_dispatch) provede nasazení.
+  3. Po úspěšném běhu získáte URL `https://<project>.pages.dev` (nebo custom domain, pokud ji nastavíte).
+
+Poznámky a rychlý náhled lokálně přes Cloudflare Tunnel (volitelně):
+- Pokud chcete sdílet lokální preview přes Cloudflare bez vytváření Pages projektu, použijte `cloudflared` a příkaz
+  ```bash
+  cloudflared tunnel --url http://localhost:8000
+  ```
+  To vyžaduje přihlášení `cloudflared login` do Cloudflare a není součástí tohoto repozitáře.
+
+Troubleshooting
+- Pokud workflow selže, otevřete GitHub Actions → vyberte běh → zobrazte logy kroku `Deploy to Cloudflare Pages`.
+- Zkontrolujte, že `directory` v workflow odpovídá umístění (zde `HelloComp_PREZENTACE`).
+
+Hotovo — po přidání secrets spusťte workflow ručně (`Actions → Deploy to Cloudflare Pages → Run workflow`) a po úspěšném buildu vám Cloudflare předá preview URL.
